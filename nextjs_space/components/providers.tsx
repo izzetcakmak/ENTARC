@@ -2,10 +2,24 @@
 
 // Providers Component - Application-wide providers
 // Wraps the app with necessary context providers
+// Includes Web3 (Wagmi) provider for Arc Testnet
 
 import { SessionProvider } from 'next-auth/react';
 import { ThemeProvider } from '@/components/theme-provider';
+import { WagmiProvider } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { wagmiConfig } from '@/lib/wagmi-config';
 import { useState, useEffect, type ReactNode } from 'react';
+
+// Create a client for React Query (required by wagmi v2)
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 interface ProvidersProps {
   children: ReactNode;
@@ -31,15 +45,19 @@ export function Providers({ children }: ProvidersProps) {
   }
 
   return (
-    <SessionProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="dark"
-        enableSystem={false}
-        disableTransitionOnChange
-      >
-        {children}
-      </ThemeProvider>
-    </SessionProvider>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </SessionProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }

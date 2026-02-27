@@ -1,9 +1,10 @@
 'use client';
 
 // SettingsContent - Client component for settings page
-// User preferences and account management
+// User preferences, account management, and wallet connection
 
 import { GlassCard } from '@/components/shared/glass-card';
+import { WalletConnectButton } from '@/components/wallet/wallet-connect-button';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import {
@@ -15,6 +16,7 @@ import {
   Wallet,
   Globe,
   Save,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -51,6 +53,30 @@ export function SettingsContent() {
             </p>
           </div>
         </div>
+      </GlassCard>
+
+      {/* Wallet Connection - Full Width Priority Section */}
+      <GlassCard className="border-cyan-500/30 bg-gradient-to-br from-cyan-500/5 to-blue-500/5">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-cyan-400" />
+            <h2 className="text-lg font-semibold text-white">Treasury Wallet</h2>
+          </div>
+          <a
+            href="https://testnet.arcscan.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-sm text-slate-400 hover:text-cyan-400"
+          >
+            Arc Testnet Explorer
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
+        <p className="mb-4 text-sm text-slate-400">
+          Connect your wallet to link it as the Treasury Owner on Arc Testnet. 
+          This wallet will be used for managing investments and streaming payments.
+        </p>
+        <WalletConnectButton showBalance={true} />
       </GlassCard>
 
       <div className="grid gap-6 lg:grid-cols-2">

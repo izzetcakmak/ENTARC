@@ -1,20 +1,23 @@
 'use client';
 
 // DashboardContent - Client component for dashboard
-// Renders all dashboard components
+// Renders all dashboard components including Treasury wallet
 
 import { MetricCards } from '@/components/dashboard/metric-cards';
 import { StreamingChart } from '@/components/dashboard/streaming-chart';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { GlassCard } from '@/components/shared/glass-card';
+import { TreasuryDisplay } from '@/components/wallet/treasury-display';
 import { useArcentStore } from '@/store/use-arcent-store';
 import { useEffect, useState } from 'react';
-import { Zap, Target, TrendingUp } from 'lucide-react';
+import { Zap, Target, TrendingUp, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { useAccount } from 'wagmi';
 
 export function DashboardContent() {
   const [mounted, setMounted] = useState(false);
   const projects = useArcentStore((state) => state.projects);
+  const { isConnected } = useAccount();
 
   useEffect(() => {
     setMounted(true);
@@ -45,14 +48,39 @@ export function DashboardContent() {
             Autonomous VC Agent on Arc Network
           </p>
         </div>
-        <Link
-          href="/discovery"
-          className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-2.5 font-medium text-slate-900 transition-all hover:bg-cyan-400 hover:shadow-lg hover:shadow-cyan-500/25"
-        >
-          <Zap className="h-4 w-4" />
-          Discover Projects
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/discovery"
+            className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-2.5 font-medium text-slate-900 transition-all hover:bg-cyan-400 hover:shadow-lg hover:shadow-cyan-500/25"
+          >
+            <Zap className="h-4 w-4" />
+            Discover Projects
+          </Link>
+        </div>
       </div>
+
+      {/* Treasury Wallet Section */}
+      {isConnected ? (
+        <TreasuryDisplay />
+      ) : (
+        <GlassCard className="border-cyan-500/30 bg-gradient-to-br from-cyan-500/5 to-blue-500/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Treasury Wallet</h3>
+              <p className="mt-1 text-sm text-slate-400">
+                Connect your wallet to manage investments on Arc Testnet
+              </p>
+            </div>
+            <Link
+              href="/settings"
+              className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-400 transition-all hover:bg-cyan-500/20"
+            >
+              <Settings className="h-4 w-4" />
+              Connect Wallet
+            </Link>
+          </div>
+        </GlassCard>
+      )}
 
       {/* Metric Cards */}
       <MetricCards />

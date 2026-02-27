@@ -19,6 +19,7 @@ model User {
   password      String?
   emailVerified DateTime?
   image         String?
+  walletAddress String?   // Arc Testnet wallet address
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
