@@ -1,8 +1,9 @@
 // Auth Configuration - NextAuth.js setup
-// Handles authentication with credentials provider
+// Handles authentication with credentials provider and Google SSO
 
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
@@ -10,6 +11,13 @@ import bcrypt from 'bcryptjs';
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
+    // Google OAuth Provider
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      allowDangerousEmailAccountLinking: true,
+    }),
+    // Email/Password Provider
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -62,10 +70,39 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Handle relative URLs
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      // Handle same-origin URLs
+      if (new URL(url).origin === baseUrl) return url;
+      // Default to baseUrl
+      return baseUrl;
+    },
+  },
+  cookies: {
+    state: {
+      name: 'next-auth.state',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    pkceCodeVerifier: {
+      name: 'next-auth.pkce.code_verifier',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
   pages: {
     signIn: '/login',
     error: '/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: false, // Disable debug to avoid console warnings
 };
