@@ -175,7 +175,10 @@ export async function GET(request: NextRequest) {
       `/search/repositories?q=${encodeURIComponent(selectedQuery)}&sort=${sort}&order=desc&per_page=${limit}`
     );
 
-    const projects = data.items.map(transformToProject);
+    // Sort by trustScore (highest first)
+    const projects = data.items
+      .map(transformToProject)
+      .sort((a: any, b: any) => b.trustScore - a.trustScore);
 
     return NextResponse.json({
       projects,

@@ -12,6 +12,9 @@ import {
   GitFork,
   ExternalLink,
   Activity,
+  Mail,
+  Linkedin,
+  Twitter,
 } from 'lucide-react';
 
 interface ArcProject {
@@ -31,6 +34,12 @@ interface ArcProject {
     discordMembers: number;
     arcHubVotes: number;
     fundingTarget: number;
+  };
+  contact?: {
+    email?: string;
+    twitter?: string;
+    github?: string;
+    linkedin?: string;
   };
   tags: string[];
   verified: boolean;
@@ -166,18 +175,64 @@ export function RealProjectCard({ project }: { project: Project }) {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
-            <span className={cn(
-              'px-2 py-1 rounded-md text-xs font-medium',
-              categoryColors[project.category] || 'bg-slate-500/20 text-slate-400'
-            )}>
-              {project.category}
-            </span>
-            <span className="text-xs text-slate-500">
-              Target: ${formatCompact(project.metrics.fundingTarget)}
-            </span>
-          </div>
+          {/* Contact Links */}
+          {project.contact && (
+            <div className="flex items-center gap-2 pt-2 border-t border-slate-700/50">
+              {project.contact.email && (
+                <a
+                  href={`mailto:${project.contact.email}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
+                  title={project.contact.email}
+                >
+                  <Mail className="h-4 w-4" />
+                </a>
+              )}
+              {project.contact.twitter && (
+                <a
+                  href={project.contact.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
+                  title="X (Twitter)"
+                >
+                  <Twitter className="h-4 w-4" />
+                </a>
+              )}
+              {project.contact.github && (
+                <a
+                  href={project.contact.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
+                  title="GitHub"
+                >
+                  <Github className="h-4 w-4" />
+                </a>
+              )}
+              {project.contact.linkedin && (
+                <a
+                  href={project.contact.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
+                  title="LinkedIn"
+                >
+                  <Linkedin className="h-4 w-4" />
+                </a>
+              )}
+              <div className="flex-1" />
+              <span className={cn(
+                'px-2 py-1 rounded-md text-xs font-medium',
+                categoryColors[project.category] || 'bg-slate-500/20 text-slate-400'
+              )}>
+                {project.category}
+              </span>
+            </div>
+          )}
         </div>
       </GlassCard>
     );

@@ -21,8 +21,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 88,
     sentiment: 'Bullish',
     activityLevel: 'High',
-    github: { stars: 234, commits30d: 89, contributors: 8 },
+    github: { stars: 234, commits30d: 89, contributors: 8, url: 'https://github.com/rsoft-arc' },
     social: { twitter: '@RSoftArc', discord: 2400, mentions: 156 },
+    contact: { email: 'team@rsoft.arc', twitter: 'https://x.com/RSoftArc', github: 'https://github.com/rsoft-arc' },
     funding: { raised: 0, target: 500000, backers: 0 },
     arcHub: { votes: 342, comments: 67, verified: true },
     team: ['Anonymous Builders'],
@@ -38,8 +39,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 85,
     sentiment: 'Bullish',
     activityLevel: 'High',
-    github: { stars: 189, commits30d: 124, contributors: 6 },
+    github: { stars: 189, commits30d: 124, contributors: 6, url: 'https://github.com/fein-protocol' },
     social: { twitter: '@FEINProtocol', discord: 1850, mentions: 203 },
+    contact: { email: 'hello@fein.io', twitter: 'https://x.com/FEINProtocol', github: 'https://github.com/fein-protocol', linkedin: 'https://linkedin.com/company/fein-protocol' },
     funding: { raised: 0, target: 750000, backers: 0 },
     arcHub: { votes: 289, comments: 45, verified: true },
     team: ['FEIN Labs'],
@@ -55,8 +57,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 82,
     sentiment: 'Bullish',
     activityLevel: 'Moderate',
-    github: { stars: 156, commits30d: 67, contributors: 5 },
+    github: { stars: 156, commits30d: 67, contributors: 5, url: 'https://github.com/omniagentpay' },
     social: { twitter: '@OmniAgentPay', discord: 1200, mentions: 89 },
+    contact: { email: 'contact@omniagentpay.xyz', twitter: 'https://x.com/OmniAgentPay', github: 'https://github.com/omniagentpay' },
     funding: { raised: 0, target: 400000, backers: 0 },
     arcHub: { votes: 198, comments: 34, verified: true },
     team: ['Omni Foundation'],
@@ -72,8 +75,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 79,
     sentiment: 'Neutral',
     activityLevel: 'High',
-    github: { stars: 143, commits30d: 98, contributors: 4 },
+    github: { stars: 143, commits30d: 98, contributors: 4, url: 'https://github.com/streamfi-arc' },
     social: { twitter: '@StreamFiArc', discord: 980, mentions: 67 },
+    contact: { email: 'team@streamfi.arc', twitter: 'https://x.com/StreamFiArc', github: 'https://github.com/streamfi-arc' },
     funding: { raised: 0, target: 350000, backers: 0 },
     arcHub: { votes: 167, comments: 28, verified: true },
     team: ['StreamFi Team'],
@@ -89,8 +93,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 76,
     sentiment: 'Bullish',
     activityLevel: 'Moderate',
-    github: { stars: 98, commits30d: 45, contributors: 3 },
+    github: { stars: 98, commits30d: 45, contributors: 3, url: 'https://github.com/vaultai-labs' },
     social: { twitter: '@VaultAI_Arc', discord: 720, mentions: 45 },
+    contact: { email: 'info@vaultai.arc', twitter: 'https://x.com/VaultAI_Arc', github: 'https://github.com/vaultai-labs' },
     funding: { raised: 0, target: 600000, backers: 0 },
     arcHub: { votes: 134, comments: 22, verified: false },
     team: ['VaultAI Labs'],
@@ -106,8 +111,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 73,
     sentiment: 'Neutral',
     activityLevel: 'Moderate',
-    github: { stars: 87, commits30d: 34, contributors: 4 },
+    github: { stars: 87, commits30d: 34, contributors: 4, url: 'https://github.com/agentdao' },
     social: { twitter: '@AgentDAO', discord: 650, mentions: 38 },
+    contact: { email: 'governance@agentdao.xyz', twitter: 'https://x.com/AgentDAO', github: 'https://github.com/agentdao' },
     funding: { raised: 0, target: 300000, backers: 0 },
     arcHub: { votes: 112, comments: 19, verified: false },
     team: ['AgentDAO Collective'],
@@ -123,8 +129,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 71,
     sentiment: 'Neutral',
     activityLevel: 'Low',
-    github: { stars: 67, commits30d: 23, contributors: 2 },
+    github: { stars: 67, commits30d: 23, contributors: 2, url: 'https://github.com/neuralpay-arc' },
     social: { twitter: '@NeuralPayArc', discord: 450, mentions: 28 },
+    contact: { email: 'dev@neuralpay.arc', twitter: 'https://x.com/NeuralPayArc', github: 'https://github.com/neuralpay-arc' },
     funding: { raised: 0, target: 250000, backers: 0 },
     arcHub: { votes: 89, comments: 14, verified: false },
     team: ['NeuralPay Labs'],
@@ -140,8 +147,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 68,
     sentiment: 'Bullish',
     activityLevel: 'Moderate',
-    github: { stars: 56, commits30d: 41, contributors: 3 },
+    github: { stars: 56, commits30d: 41, contributors: 3, url: 'https://github.com/swapagent-arc' },
     social: { twitter: '@SwapAgentArc', discord: 380, mentions: 34 },
+    contact: { email: 'team@swapagent.arc', twitter: 'https://x.com/SwapAgentArc', github: 'https://github.com/swapagent-arc' },
     funding: { raised: 0, target: 200000, backers: 0 },
     arcHub: { votes: 76, comments: 11, verified: false },
     team: ['SwapAgent Dev'],
@@ -157,8 +165,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 65,
     sentiment: 'Neutral',
     activityLevel: 'Low',
-    github: { stars: 45, commits30d: 19, contributors: 2 },
+    github: { stars: 45, commits30d: 19, contributors: 2, url: 'https://github.com/dataoracle-arc' },
     social: { twitter: '@DataOracleArc', discord: 290, mentions: 21 },
+    contact: { email: 'hello@dataoracle.arc', twitter: 'https://x.com/DataOracleArc', github: 'https://github.com/dataoracle-arc' },
     funding: { raised: 0, target: 350000, backers: 0 },
     arcHub: { votes: 54, comments: 8, verified: false },
     team: ['DataOracle Team'],
@@ -174,8 +183,9 @@ const ARC_ECOSYSTEM_PROJECTS = [
     trustScore: 62,
     sentiment: 'Neutral',
     activityLevel: 'High',
-    github: { stars: 234, commits30d: 156, contributors: 7 },
+    github: { stars: 234, commits30d: 156, contributors: 7, url: 'https://github.com/agentkit-arc' },
     social: { twitter: '@AgentKitArc', discord: 1100, mentions: 78 },
+    contact: { email: 'foundation@agentkit.dev', twitter: 'https://x.com/AgentKitArc', github: 'https://github.com/agentkit-arc', linkedin: 'https://linkedin.com/company/agentkit' },
     funding: { raised: 0, target: 450000, backers: 0 },
     arcHub: { votes: 187, comments: 31, verified: true },
     team: ['AgentKit Foundation'],
@@ -204,6 +214,7 @@ function transformProject(project: typeof ARC_ECOSYSTEM_PROJECTS[0]) {
       arcHubVotes: project.arcHub.votes,
       fundingTarget: project.funding.target,
     },
+    contact: project.contact,
     tags: project.tags,
     verified: project.arcHub.verified,
     source: 'arc-ecosystem',
@@ -235,22 +246,8 @@ export async function GET(request: NextRequest) {
 
     let filteredProjects = [...ARC_ECOSYSTEM_PROJECTS];
 
-    switch (type) {
-      case 'pre-tge':
-        // All projects are pre-TGE, sort by trust score
-        filteredProjects = filteredProjects.sort((a, b) => b.trustScore - a.trustScore);
-        break;
-        
-      case 'new-builders':
-        // Sort by recent GitHub activity
-        filteredProjects = filteredProjects.sort((a, b) => b.github.commits30d - a.github.commits30d);
-        break;
-        
-      case 'rising':
-        // Sort by Arc Hub votes (community interest)
-        filteredProjects = filteredProjects.sort((a, b) => b.arcHub.votes - a.arcHub.votes);
-        break;
-    }
+    // Always sort by trustScore (highest first)
+    filteredProjects = filteredProjects.sort((a, b) => b.trustScore - a.trustScore);
 
     const projects = filteredProjects.slice(0, limit).map(transformProject);
 
