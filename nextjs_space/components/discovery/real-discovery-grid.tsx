@@ -43,7 +43,7 @@ export function RealDiscoveryGrid({ initialSource = 'arc-ecosystem' }: RealDisco
       if (source === 'arc-ecosystem') {
         endpoint = `/api/discovery/arc-ecosystem?type=${arcType}&limit=20`;
       } else if (source === 'github') {
-        endpoint = `/api/discovery/github?query=arc-network+web3&sort=updated&limit=20`;
+        endpoint = `/api/discovery/github?query=web3+agent&sort=stars&limit=20`;
       }
 
       const response = await fetch(endpoint);
