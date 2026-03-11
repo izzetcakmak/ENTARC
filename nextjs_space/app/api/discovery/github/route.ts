@@ -150,10 +150,7 @@ function transformToProject(repo: GitHubRepo) {
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Public endpoint - no auth required for GitHub discovery
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || 'blockchain';
