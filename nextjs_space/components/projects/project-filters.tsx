@@ -3,7 +3,7 @@
 // ProjectFilters Component - Filter and sort controls for discovery
 // Provides filtering by trust score, sentiment, activity, and category
 
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { GlassCard } from '@/components/shared/glass-card';
 import type { ProjectCategory, SentimentLabel, ActivityLevel, SortOption } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -44,7 +44,7 @@ const sortOptions: { value: SortOption; label: string }[] = [
 
 export function ProjectFilters() {
   const { filters, sortBy, sortOrder, setFilters, setSortBy, toggleSortOrder } =
-    useArcentStore();
+    useEntarcStore();
   const [expanded, setExpanded] = useState(false);
 
   const activeFilterCount = [

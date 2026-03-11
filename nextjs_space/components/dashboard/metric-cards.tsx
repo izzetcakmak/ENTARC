@@ -4,7 +4,7 @@
 // Shows TVL, Active Projects, ROI, and streaming stats
 
 import { GlassCard } from '@/components/shared/glass-card';
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { cn } from '@/lib/utils';
 import {
   Wallet,
@@ -120,7 +120,7 @@ function useAnimatedCounter(targetValue: number, duration: number = 1000) {
 }
 
 export function MetricCards() {
-  const getDashboardMetrics = useArcentStore((state) => state.getDashboardMetrics);
+  const getDashboardMetrics = useEntarcStore((state) => state.getDashboardMetrics);
   const metrics = getDashboardMetrics();
 
   // Animated values

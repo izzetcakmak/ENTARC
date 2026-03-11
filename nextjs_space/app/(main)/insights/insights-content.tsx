@@ -4,7 +4,7 @@
 // Shows AI-generated insights and market analysis
 
 import { GlassCard } from '@/components/shared/glass-card';
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { generateAIAnalysis } from '@/lib/mock-data';
 import { useEffect, useState } from 'react';
 import {
@@ -21,8 +21,8 @@ import { cn } from '@/lib/utils';
 
 export function InsightsContent() {
   const [mounted, setMounted] = useState(false);
-  const projects = useArcentStore((state) => state.projects);
-  const portfolio = useArcentStore((state) => state.portfolio);
+  const projects = useEntarcStore((state) => state.projects);
+  const portfolio = useEntarcStore((state) => state.portfolio);
 
   useEffect(() => {
     setMounted(true);

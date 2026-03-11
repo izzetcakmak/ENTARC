@@ -3,15 +3,15 @@
 // ProjectGrid Component - Grid layout for project cards
 // Displays filtered and sorted project list
 
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { ProjectCard } from './project-card';
 import { CardSkeleton } from '@/components/shared/app-skeleton';
 import { StateBlock } from '@/components/shared/state-block';
 import { useEffect, useState } from 'react';
 
 export function ProjectGrid() {
-  const getFilteredProjects = useArcentStore((state) => state.getFilteredProjects);
-  const setFilters = useArcentStore((state) => state.setFilters);
+  const getFilteredProjects = useEntarcStore((state) => state.getFilteredProjects);
+  const setFilters = useEntarcStore((state) => state.setFilters);
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 

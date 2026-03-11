@@ -3,7 +3,7 @@
 // PortfolioSummary Component - Portfolio overview cards
 // Shows total value, P/L, and allocation breakdown
 
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { GlassCard } from '@/components/shared/glass-card';
 import { cn } from '@/lib/utils';
 import {
@@ -42,8 +42,8 @@ function useAnimatedCounter(targetValue: number, duration: number = 1000) {
 }
 
 export function PortfolioSummary() {
-  const portfolio = useArcentStore((state) => state.portfolio);
-  const projects = useArcentStore((state) => state.projects);
+  const portfolio = useEntarcStore((state) => state.portfolio);
+  const projects = useEntarcStore((state) => state.projects);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

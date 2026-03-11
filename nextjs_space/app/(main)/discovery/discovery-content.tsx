@@ -6,13 +6,13 @@
 import { ProjectGrid } from '@/components/projects/project-grid';
 import { ProjectFilters } from '@/components/projects/project-filters';
 import { GlassCard } from '@/components/shared/glass-card';
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { useEffect, useState } from 'react';
 import { Compass, Sparkles } from 'lucide-react';
 
 export function DiscoveryContent() {
   const [mounted, setMounted] = useState(false);
-  const getFilteredProjects = useArcentStore((state) => state.getFilteredProjects);
+  const getFilteredProjects = useEntarcStore((state) => state.getFilteredProjects);
 
   useEffect(() => {
     setMounted(true);

@@ -3,7 +3,7 @@
 // ProjectDetailContent - Client component for project detail page
 // Renders project header and tabbed content
 
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { GlassCard } from '@/components/shared/glass-card';
 import { TrustScoreBadge } from '@/components/shared/trust-score-badge';
 import { ProjectTabs } from '@/components/projects/project-tabs';
@@ -26,8 +26,8 @@ interface ProjectDetailContentProps {
 
 export function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
   const [mounted, setMounted] = useState(false);
-  const getProjectById = useArcentStore((state) => state.getProjectById);
-  const getPortfolioForProject = useArcentStore((state) => state.getPortfolioForProject);
+  const getProjectById = useEntarcStore((state) => state.getProjectById);
+  const getPortfolioForProject = useEntarcStore((state) => state.getPortfolioForProject);
 
   useEffect(() => {
     setMounted(true);

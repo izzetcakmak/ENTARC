@@ -7,7 +7,7 @@ import { useState } from 'react';
 import type { Project, AIAnalysis } from '@/lib/types';
 import { GlassCard } from '@/components/shared/glass-card';
 import { TrustScoreBadge } from '@/components/shared/trust-score-badge';
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { generateAIAnalysis } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 import {
@@ -418,7 +418,7 @@ function ScoreCard({
 // ============================================
 
 function MilestonesTab({ project }: { project: Project }) {
-  const completeMilestone = useArcentStore((state) => state.completeMilestone);
+  const completeMilestone = useEntarcStore((state) => state.completeMilestone);
   const milestones = project?.milestones ?? [];
 
   const totalAmount = milestones.reduce((sum, m) => sum + (m?.amount ?? 0), 0);

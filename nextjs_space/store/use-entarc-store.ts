@@ -19,7 +19,7 @@ import { mockProjects, mockPortfolioPositions } from '@/lib/mock-data';
 // STORE TYPES
 // ============================================
 
-interface ArcentState {
+interface EntarcState {
   // Data
   projects: Project[];
   portfolio: PortfolioPosition[];
@@ -76,7 +76,7 @@ const defaultFilters: ProjectFilters = {
 // STORE IMPLEMENTATION
 // ============================================
 
-export const useArcentStore = create<ArcentState>()(
+export const useEntarcStore = create<EntarcState>()(
   subscribeWithSelector((set, get) => ({
     // Initial Data
     projects: mockProjects,

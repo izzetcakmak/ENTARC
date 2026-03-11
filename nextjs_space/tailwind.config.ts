@@ -44,7 +44,7 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
         // ENTARC Custom Colors
-        arcent: {
+        entarc: {
           dark: '#0D1421',
           navy: '#1a2744',
           cyan: '#22d3ee',
@@ -60,7 +60,7 @@ const config: Config = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'gradient-arcent': 'linear-gradient(135deg, #0D1421 0%, #1a2744 100%)',
+        'gradient-entarc': 'linear-gradient(135deg, #0D1421 0%, #1a2744 100%)',
       },
       boxShadow: {
         glow: '0 0 20px rgba(34, 211, 238, 0.15)',

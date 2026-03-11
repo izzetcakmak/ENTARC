@@ -4,7 +4,7 @@
 // Displays recent transactions and milestone completions
 
 import { GlassCard } from '@/components/shared/glass-card';
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { cn } from '@/lib/utils';
 import {
   Clock,
@@ -76,7 +76,7 @@ const activityColors = {
 };
 
 export function RecentActivity() {
-  const projects = useArcentStore((state) => state.projects);
+  const projects = useEntarcStore((state) => state.projects);
   const activities = generateActivityData(projects);
 
   const formatTime = (timestamp: string) => {

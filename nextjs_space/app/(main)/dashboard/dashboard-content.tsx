@@ -8,7 +8,7 @@ import { StreamingChart } from '@/components/dashboard/streaming-chart';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { GlassCard } from '@/components/shared/glass-card';
 import { TreasuryDisplay } from '@/components/wallet/treasury-display';
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { useEffect, useState } from 'react';
 import { Zap, Target, TrendingUp, Settings } from 'lucide-react';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ import { useAccount } from 'wagmi';
 
 export function DashboardContent() {
   const [mounted, setMounted] = useState(false);
-  const projects = useArcentStore((state) => state.projects);
+  const projects = useEntarcStore((state) => state.projects);
   const { isConnected } = useAccount();
 
   useEffect(() => {

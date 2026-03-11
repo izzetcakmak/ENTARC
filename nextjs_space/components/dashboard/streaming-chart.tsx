@@ -4,7 +4,7 @@
 // Shows real-time fund release with Recharts
 
 import { GlassCard } from '@/components/shared/glass-card';
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { cn } from '@/lib/utils';
 import { Activity, Play, Pause } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
@@ -31,7 +31,7 @@ export function StreamingChart() {
     startStreaming,
     stopStreaming,
     getDashboardMetrics,
-  } = useArcentStore();
+  } = useEntarcStore();
 
   const metrics = getDashboardMetrics();
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);

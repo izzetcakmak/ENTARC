@@ -3,7 +3,7 @@
 // PortfolioTable Component - Investment portfolio display
 // Shows all positions with P/L, ROI, and exit strategy controls
 
-import { useArcentStore } from '@/store/use-arcent-store';
+import { useEntarcStore } from '@/store/use-entarc-store';
 import { GlassCard } from '@/components/shared/glass-card';
 import { StateBlock } from '@/components/shared/state-block';
 import { TableRowSkeleton } from '@/components/shared/app-skeleton';
@@ -26,9 +26,9 @@ const exitStrategyConfig: Record<ExitStrategy, { label: string; color: string }>
 };
 
 export function PortfolioTable() {
-  const portfolio = useArcentStore((state) => state.portfolio);
-  const projects = useArcentStore((state) => state.projects);
-  const updateExitStrategy = useArcentStore((state) => state.updateExitStrategy);
+  const portfolio = useEntarcStore((state) => state.portfolio);
+  const projects = useEntarcStore((state) => state.projects);
+  const updateExitStrategy = useEntarcStore((state) => state.updateExitStrategy);
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
