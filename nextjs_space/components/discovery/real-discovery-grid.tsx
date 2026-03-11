@@ -18,16 +18,16 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-type DataSource = 'crypto' | 'github';
-type CryptoType = 'trending' | 'new' | 'gainers';
+type DataSource = 'arc-ecosystem' | 'github';
+type ArcType = 'pre-tge' | 'new-builders' | 'rising';
 
 interface RealDiscoveryGridProps {
   initialSource?: DataSource;
 }
 
-export function RealDiscoveryGrid({ initialSource = 'crypto' }: RealDiscoveryGridProps) {
+export function RealDiscoveryGrid({ initialSource = 'arc-ecosystem' }: RealDiscoveryGridProps) {
   const [source, setSource] = useState<DataSource>(initialSource);
-  const [cryptoType, setCryptoType] = useState<CryptoType>('trending');
+  const [arcType, setArcType] = useState<ArcType>('pre-tge');
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,10 +40,10 @@ export function RealDiscoveryGrid({ initialSource = 'crypto' }: RealDiscoveryGri
     try {
       let endpoint = '';
       
-      if (source === 'crypto') {
-        endpoint = `/api/discovery/crypto?type=${cryptoType}&limit=20`;
+      if (source === 'arc-ecosystem') {
+        endpoint = `/api/discovery/arc-ecosystem?type=${arcType}&limit=20`;
       } else if (source === 'github') {
-        endpoint = `/api/discovery/github?query=blockchain&sort=stars&limit=20`;
+        endpoint = `/api/discovery/github?query=arc-network+web3&sort=updated&limit=20`;
       }
 
       const response = await fetch(endpoint);
@@ -65,17 +65,17 @@ export function RealDiscoveryGrid({ initialSource = 'crypto' }: RealDiscoveryGri
 
   useEffect(() => {
     fetchProjects();
-  }, [source, cryptoType]);
+  }, [source, arcType]);
 
   const sourceButtons = [
-    { id: 'crypto' as DataSource, label: 'Crypto Markets', icon: TrendingUp },
-    { id: 'github' as DataSource, label: 'GitHub Repos', icon: Github },
+    { id: 'arc-ecosystem' as DataSource, label: 'Arc Ecosystem', icon: Sparkles },
+    { id: 'github' as DataSource, label: 'GitHub Builders', icon: Github },
   ];
 
-  const cryptoTypeButtons = [
-    { id: 'trending' as CryptoType, label: 'Trending', icon: Sparkles },
-    { id: 'new' as CryptoType, label: 'New Listings', icon: Clock },
-    { id: 'gainers' as CryptoType, label: 'Top Gainers', icon: TrendingUp },
+  const arcTypeButtons = [
+    { id: 'pre-tge' as ArcType, label: 'Pre-TGE', icon: Clock },
+    { id: 'new-builders' as ArcType, label: 'New Builders', icon: Sparkles },
+    { id: 'rising' as ArcType, label: 'Rising Stars', icon: TrendingUp },
   ];
 
   return (
@@ -105,18 +105,18 @@ export function RealDiscoveryGrid({ initialSource = 'crypto' }: RealDiscoveryGri
             })}
           </div>
 
-          {/* Crypto Type Filter (only for crypto source) */}
-          {source === 'crypto' && (
+          {/* Arc Type Filter (only for arc-ecosystem source) */}
+          {source === 'arc-ecosystem' && (
             <div className="flex gap-2">
-              {cryptoTypeButtons.map((btn) => {
+              {arcTypeButtons.map((btn) => {
                 const Icon = btn.icon;
                 return (
                   <button
                     key={btn.id}
-                    onClick={() => setCryptoType(btn.id)}
+                    onClick={() => setArcType(btn.id)}
                     className={cn(
                       'flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                      cryptoType === btn.id
+                      arcType === btn.id
                         ? 'bg-violet-500/20 text-violet-400'
                         : 'bg-slate-800/30 text-slate-500 hover:text-slate-300'
                     )}
@@ -200,8 +200,10 @@ export function RealDiscoveryGrid({ initialSource = 'crypto' }: RealDiscoveryGri
 
       {/* Data Source Attribution */}
       <div className="text-center text-xs text-slate-600">
-        Data provided by {source === 'crypto' ? 'CoinMarketCap' : 'GitHub'} API • 
-        For informational purposes only
+        {source === 'arc-ecosystem' 
+          ? 'Pre-TGE projects on Arc Network • Early-stage investment opportunities'
+          : 'GitHub builders in Web3 space • Developer activity tracking'
+        }
       </div>
     </div>
   );

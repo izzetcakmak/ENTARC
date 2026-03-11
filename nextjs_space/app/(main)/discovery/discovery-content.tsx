@@ -46,7 +46,7 @@ export function DiscoveryContent() {
               <h1 className="text-2xl font-bold text-white">Project Discovery</h1>
               <p className="text-slate-400">
                 {viewMode === 'real' 
-                  ? 'Live market data from CoinMarketCap & GitHub'
+                  ? 'Pre-TGE projects building on Arc Network'
                   : 'Explore early-stage projects with AI-powered analysis'
                 }
               </p>
@@ -64,10 +64,10 @@ export function DiscoveryContent() {
                   : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
               )}
             >
-              <Globe className="h-4 w-4" />
-              Live Markets
-              <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded bg-emerald-500/20 text-emerald-400">
-                LIVE
+              <Zap className="h-4 w-4" />
+              Arc Ecosystem
+              <span className="ml-1 px-1.5 py-0.5 text-[10px] rounded bg-amber-500/20 text-amber-400">
+                PRE-TGE
               </span>
             </button>
             <button
@@ -86,16 +86,16 @@ export function DiscoveryContent() {
           </div>
         </div>
 
-        {/* Info Banner for Real Data */}
+        {/* Info Banner for Arc Ecosystem */}
         {viewMode === 'real' && (
-          <div className="mt-4 flex items-center gap-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 p-3">
-            <Zap className="h-5 w-5 text-cyan-400" />
+          <div className="mt-4 flex items-center gap-3 rounded-lg bg-amber-500/10 border border-amber-500/20 p-3">
+            <Zap className="h-5 w-5 text-amber-400" />
             <div className="flex-1">
-              <p className="text-sm text-cyan-300">
-                <span className="font-semibold">Real-time Discovery</span> — Data fetched securely from CoinMarketCap & GitHub APIs
+              <p className="text-sm text-amber-300">
+                <span className="font-semibold">Pre-TGE Discovery</span> — Early-stage projects building on Arc Network before token launch
               </p>
               <p className="text-xs text-slate-400 mt-0.5">
-                API keys are stored server-side and never exposed to the browser
+                Invest early via milestone-based streaming • No token yet = Maximum upside potential
               </p>
             </div>
           </div>

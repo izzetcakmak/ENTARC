@@ -7,33 +7,33 @@ import { GlassCard } from '@/components/shared/glass-card';
 import { TrustScoreBadge } from '@/components/shared/trust-score-badge';
 import { cn } from '@/lib/utils';
 import {
-  TrendingUp,
-  TrendingDown,
   Github,
   Star,
   GitFork,
   ExternalLink,
-  BarChart3,
   Activity,
 } from 'lucide-react';
 
-interface CryptoProject {
+interface ArcProject {
   id: string;
   name: string;
-  symbol: string;
   tagline: string;
   category: string;
+  stage: string;
   trustScore: number;
   sentiment: 'Bullish' | 'Neutral' | 'Bearish';
   activityLevel: string;
+  logoEmoji: string;
   metrics: {
-    marketCap: number;
-    volume24h: number;
-    price: number;
-    priceChange24h: number;
-    priceChange7d: number;
-    rank: number;
+    githubStars: number;
+    commits30d: number;
+    contributors: number;
+    discordMembers: number;
+    arcHubVotes: number;
+    fundingTarget: number;
   };
+  tags: string[];
+  verified: boolean;
   source: string;
 }
 
@@ -60,21 +60,14 @@ interface GitHubProject {
   source: string;
 }
 
-type Project = CryptoProject | GitHubProject;
+type Project = ArcProject | GitHubProject;
 
-function isCryptoProject(project: Project): project is CryptoProject {
-  return project.source === 'coinmarketcap';
+function isArcProject(project: Project): project is ArcProject {
+  return project.source === 'arc-ecosystem';
 }
 
 function isGitHubProject(project: Project): project is GitHubProject {
   return project.source === 'github';
-}
-
-function formatNumber(num: number): string {
-  if (num >= 1_000_000_000) return `$${(num / 1_000_000_000).toFixed(2)}B`;
-  if (num >= 1_000_000) return `$${(num / 1_000_000).toFixed(2)}M`;
-  if (num >= 1_000) return `$${(num / 1_000).toFixed(2)}K`;
-  return `$${num.toFixed(2)}`;
 }
 
 function formatCompact(num: number): string {
@@ -99,61 +92,77 @@ export function RealProjectCard({ project }: { project: Project }) {
     Social: 'bg-green-500/20 text-green-400',
   };
 
-  if (isCryptoProject(project)) {
-    const priceChangeColor = project.metrics.priceChange24h >= 0 ? 'text-emerald-400' : 'text-red-400';
-    const PriceIcon = project.metrics.priceChange24h >= 0 ? TrendingUp : TrendingDown;
-
+  if (isArcProject(project)) {
     return (
       <GlassCard hover className="group cursor-pointer transition-all duration-300">
         <div className="space-y-4">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-2xl">
-                🪙
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 text-2xl">
+                {project.logoEmoji}
               </div>
               <div>
-                <h3 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
-                  {project.name}
-                </h3>
-                <p className="text-sm text-slate-400">{project.symbol} • Rank #{project.metrics.rank}</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
+                    {project.name}
+                  </h3>
+                  {project.verified && (
+                    <span className="px-1.5 py-0.5 text-[10px] rounded bg-emerald-500/20 text-emerald-400 font-medium">
+                      ✓ Verified
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-slate-400">{project.tagline}</p>
               </div>
             </div>
             <TrustScoreBadge score={project.trustScore} size="sm" />
           </div>
 
-          {/* Price & Change */}
-          <div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-3">
-            <div>
-              <p className="text-xs text-slate-500">Price</p>
-              <p className="text-lg font-bold text-white">
-                ${project.metrics.price < 0.01 
-                  ? project.metrics.price.toFixed(6) 
-                  : project.metrics.price.toFixed(2)}
-              </p>
-            </div>
-            <div className={cn('flex items-center gap-1', priceChangeColor)}>
-              <PriceIcon className="h-4 w-4" />
-              <span className="font-semibold">
-                {project.metrics.priceChange24h >= 0 ? '+' : ''}
-                {project.metrics.priceChange24h.toFixed(2)}%
-              </span>
-            </div>
+          {/* Stage Badge */}
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-1 rounded-md text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              🚀 {project.stage}
+            </span>
+            <span className={cn('text-xs', sentimentColors[project.sentiment])}>
+              {project.sentiment}
+            </span>
           </div>
 
           {/* Metrics */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg bg-slate-800/30 p-2">
-              <p className="text-xs text-slate-500">Market Cap</p>
-              <p className="text-sm font-semibold text-white">
-                {formatNumber(project.metrics.marketCap)}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-slate-800/30 p-2 text-center">
+              <p className="text-xs text-slate-500">GitHub</p>
+              <p className="text-sm font-semibold text-white flex items-center justify-center gap-1">
+                <Star className="h-3 w-3 text-amber-400" />
+                {formatCompact(project.metrics.githubStars)}
               </p>
             </div>
-            <div className="rounded-lg bg-slate-800/30 p-2">
-              <p className="text-xs text-slate-500">24h Volume</p>
+            <div className="rounded-lg bg-slate-800/30 p-2 text-center">
+              <p className="text-xs text-slate-500">Discord</p>
               <p className="text-sm font-semibold text-white">
-                {formatNumber(project.metrics.volume24h)}
+                {formatCompact(project.metrics.discordMembers)}
               </p>
+            </div>
+            <div className="rounded-lg bg-slate-800/30 p-2 text-center">
+              <p className="text-xs text-slate-500">Arc Votes</p>
+              <p className="text-sm font-semibold text-cyan-400">
+                {project.metrics.arcHubVotes}
+              </p>
+            </div>
+          </div>
+
+          {/* Activity */}
+          <div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-2">
+            <div className="flex items-center gap-2">
+              <GitFork className="h-4 w-4 text-slate-400" />
+              <span className="text-xs text-slate-400">
+                {project.metrics.commits30d} commits (30d)
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Activity className="h-3 w-3 text-slate-500" />
+              <span className="text-xs text-slate-500">{project.activityLevel}</span>
             </div>
           </div>
 
@@ -165,13 +174,9 @@ export function RealProjectCard({ project }: { project: Project }) {
             )}>
               {project.category}
             </span>
-            <div className="flex items-center gap-2">
-              <span className={cn('text-xs', sentimentColors[project.sentiment as keyof typeof sentimentColors])}>
-                {project.sentiment}
-              </span>
-              <Activity className="h-3 w-3 text-slate-500" />
-              <span className="text-xs text-slate-500">{project.activityLevel}</span>
-            </div>
+            <span className="text-xs text-slate-500">
+              Target: ${formatCompact(project.metrics.fundingTarget)}
+            </span>
           </div>
         </div>
       </GlassCard>
