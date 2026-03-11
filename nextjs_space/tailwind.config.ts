@@ -43,7 +43,7 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // ARCENT Custom Colors
+        // ENTARC Custom Colors
         arcent: {
           dark: '#0D1421',
           navy: '#1a2744',

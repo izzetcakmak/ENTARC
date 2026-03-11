@@ -1,4 +1,4 @@
-// Root Layout - ARCENT MVP
+// Root Layout - ENTARC MVP
 // Main application shell with providers
 // Includes Google Analytics integration
 
@@ -17,20 +17,20 @@ const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID || 'G-XXXXXXXXXX';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
-  title: 'ARCENT - Autonomous VC Agent | Arc Network',
+  title: 'ENTARC - Autonomous VC Agent | Arc Network',
   description: 'AI-driven venture capital platform with milestone-based streaming payments on Arc Network. Discover, invest, and manage Web3 projects with intelligent analysis.',
-  keywords: ['ARCENT', 'VC', 'Web3', 'AI', 'Arc Network', 'Streaming', 'Milestone', 'Investment'],
+  keywords: ['ENTARC', 'VC', 'Web3', 'AI', 'Arc Network', 'Streaming', 'Milestone', 'Investment'],
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    title: 'ARCENT - Autonomous VC Agent',
+    title: 'ENTARC - Autonomous VC Agent',
     description: 'AI-driven venture capital platform with milestone-based streaming payments',
-    siteName: 'ARCENT',
+    siteName: 'ENTARC',
     images: ['/og-image.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ARCENT - Autonomous VC Agent',
+    title: 'ENTARC - Autonomous VC Agent',
     description: 'AI-driven venture capital platform on Arc Network',
     images: ['/og-image.png'],
   },

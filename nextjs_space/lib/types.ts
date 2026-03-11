@@ -1,4 +1,4 @@
-// ARCENT MVP - Type Definitions
+// ENTARC MVP - Type Definitions
 // All TypeScript interfaces and types for the application
 
 // ============================================

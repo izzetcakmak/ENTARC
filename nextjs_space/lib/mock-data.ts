@@ -1,4 +1,4 @@
-// ARCENT MVP - Mock Data
+// ENTARC MVP - Mock Data
 // Comprehensive mock data for all features
 
 import type {

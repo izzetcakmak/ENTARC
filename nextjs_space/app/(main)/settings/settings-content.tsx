@@ -100,7 +100,7 @@ export function SettingsContent() {
               <label className="text-sm text-slate-400">Display Name</label>
               <input
                 type="text"
-                defaultValue={session?.user?.name ?? 'Arcent User'}
+                defaultValue={session?.user?.name ?? 'Entarc User'}
                 className="mt-1 w-full rounded-lg border border-slate-700/50 bg-slate-800/50 px-4 py-2 text-white focus:border-cyan-500/50 focus:outline-none"
               />
             </div>

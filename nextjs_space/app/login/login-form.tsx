@@ -291,7 +291,7 @@ export function LoginForm() {
 
           {/* Footer */}
           <p className="mt-6 text-center text-xs text-slate-500">
-            By continuing, you agree to ARCENT&apos;s Terms of Service and Privacy Policy
+            By continuing, you agree to ENTARC&apos;s Terms of Service and Privacy Policy
           </p>
         </div>
       </div>

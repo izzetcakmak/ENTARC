@@ -23,14 +23,14 @@ async function main() {
   });
 
   // Create additional test user
-  const testPassword = await bcrypt.hash('arcent2024', 12);
+  const testPassword = await bcrypt.hash('entarc2024', 12);
 
   await prisma.user.upsert({
-    where: { email: 'test@arcent.io' },
+    where: { email: 'test@entarc.io' },
     update: {},
     create: {
-      email: 'test@arcent.io',
-      name: 'Arcent User',
+      email: 'test@entarc.io',
+      name: 'Entarc User',
       password: testPassword,
     },
   });

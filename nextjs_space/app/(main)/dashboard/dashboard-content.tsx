@@ -42,7 +42,7 @@ export function DashboardContent() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">
-            Welcome to <span className="text-cyan-400">ARCENT</span>
+            Welcome to <span className="text-cyan-400">ENTARC</span>
           </h1>
           <p className="mt-1 text-slate-400">
             Autonomous VC Agent on Arc Network

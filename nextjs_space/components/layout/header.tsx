@@ -25,7 +25,7 @@ export function Header() {
     if (pathname?.startsWith('/projects/')) {
       return 'Project Details';
     }
-    return pageTitles[pathname ?? ''] ?? 'ARCENT';
+    return pageTitles[pathname ?? ''] ?? 'ENTARC';
   };
 
   const userName = session?.user?.name ?? session?.user?.email ?? 'User';

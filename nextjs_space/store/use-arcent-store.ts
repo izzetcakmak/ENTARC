@@ -1,6 +1,6 @@
 'use client';
 
-// ARCENT MVP - Zustand Store
+// ENTARC MVP - Zustand Store
 // Central state management for the application
 
 import { create } from 'zustand';

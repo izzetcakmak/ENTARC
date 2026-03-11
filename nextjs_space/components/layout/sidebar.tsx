@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Mail,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -32,6 +33,10 @@ const navItems: NavItem[] = [
   { label: 'Portfolio', href: '/portfolio', icon: Briefcase },
   { label: 'AI Insights', href: '/insights', icon: Brain },
   { label: 'Settings', href: '/settings', icon: Settings },
+];
+
+const founderNavItems: NavItem[] = [
+  { label: 'Submit Project', href: '/submit-project', icon: Zap },
 ];
 
 export function Sidebar() {
@@ -56,7 +61,7 @@ export function Sidebar() {
           </div>
           {!collapsed && (
             <span className="text-xl font-bold tracking-tight text-white">
-              ARC<span className="text-cyan-400">ENT</span>
+              ENT<span className="text-cyan-400">ARC</span>
             </span>
           )}
         </Link>
@@ -102,6 +107,40 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Founder Section */}
+        {!collapsed && (
+          <div className="mt-4 mb-2 px-4">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Founder</span>
+          </div>
+        )}
+        {founderNavItems.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 rounded-xl px-4 py-3',
+                'transition-all duration-200',
+                isActive
+                  ? 'bg-purple-500/10 text-purple-400 shadow-lg shadow-purple-500/5'
+                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white',
+                collapsed && 'justify-center px-0'
+              )}
+            >
+              <Icon className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && (
+                <span className="font-medium">{item.label}</span>
+              )}
+              {isActive && !collapsed && (
+                <div className="ml-auto h-2 w-2 rounded-full bg-purple-400" />
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Bottom Section */}
@@ -122,6 +161,24 @@ export function Sidebar() {
           </div>
           <p className="mt-1 text-xs text-slate-500">Real-time fund release</p>
         </div>
+
+        {/* Contact & Partnerships */}
+        <a
+          href="mailto:contact@entarc.xyz"
+          className={cn(
+            'mb-2 flex items-center gap-3 rounded-xl px-4 py-3',
+            'text-slate-400 transition-colors hover:bg-cyan-500/10 hover:text-cyan-400',
+            collapsed && 'justify-center px-0'
+          )}
+        >
+          <Mail className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="text-xs font-medium">Partnerships & Ads</span>
+              <span className="text-xs text-slate-500">contact@entarc.xyz</span>
+            </div>
+          )}
+        </a>
 
         {/* Logout Button */}
         <button
