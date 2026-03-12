@@ -142,7 +142,7 @@ export function LoginForm() {
               <Zap className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-white">
-              ARC<span className="text-cyan-400">ENT</span>
+              ENT<span className="text-cyan-400">ARC</span>
             </h1>
             <p className="mt-1 text-sm text-slate-400">
               Autonomous VC Agent on Arc Network
