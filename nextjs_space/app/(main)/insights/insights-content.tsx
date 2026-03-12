@@ -14,7 +14,6 @@ import {
   Zap,
   Target,
   Globe,
-  Twitter,
   Github,
   RefreshCw,
   Loader2,
@@ -40,8 +39,6 @@ interface ArcProject {
     fundingTarget: number;
   };
   contact?: {
-    email?: string;
-    twitter?: string;
     github?: string;
     website?: string;
   };
@@ -265,17 +262,6 @@ export function InsightsContent() {
                         Website
                       </a>
                     )}
-                    {project.contact.twitter && (
-                      <a
-                        href={project.contact.twitter}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all text-xs"
-                      >
-                        <Twitter className="h-3 w-3" />
-                        X
-                      </a>
-                    )}
                     {project.contact.github && (
                       <a
                         href={project.contact.github}
@@ -322,9 +308,9 @@ export function InsightsContent() {
                     <Globe className="h-3.5 w-3.5" />
                   </a>
                 )}
-                {project.contact?.twitter && (
-                  <a href={project.contact.twitter} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded bg-slate-800/50 text-slate-400 hover:text-cyan-400">
-                    <Twitter className="h-3.5 w-3.5" />
+                {project.contact?.github && (
+                  <a href={project.contact.github} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded bg-slate-800/50 text-slate-400 hover:text-cyan-400">
+                    <Github className="h-3.5 w-3.5" />
                   </a>
                 )}
                 <span className={cn(

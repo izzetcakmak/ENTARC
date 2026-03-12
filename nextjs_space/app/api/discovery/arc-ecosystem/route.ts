@@ -171,7 +171,7 @@ const ARC_ECOSYSTEM_PROJECTS = [
     social: { twitter: '@coinaboredeveloper', discord: 5000, mentions: 500 },
     contact: { 
       github: 'https://github.com/coinbase/x402',
-      twitter: 'https://x.com/CoinbaseDev'
+      website: 'https://x402.org'
     },
     funding: { raised: 0, target: 0, backers: 0 },
     arcHub: { votes: 892, comments: 156, verified: true },

@@ -10,11 +10,8 @@ import {
   Github,
   Star,
   GitFork,
-  ExternalLink,
   Activity,
   Globe,
-  Linkedin,
-  Twitter,
 } from 'lucide-react';
 
 interface ArcProject {
@@ -36,10 +33,7 @@ interface ArcProject {
     fundingTarget: number;
   };
   contact?: {
-    email?: string;
-    twitter?: string;
     github?: string;
-    linkedin?: string;
     website?: string;
   };
   tags: string[];
@@ -176,7 +170,7 @@ export function RealProjectCard({ project }: { project: Project }) {
             </div>
           </div>
 
-          {/* Contact Links */}
+          {/* Contact Links - Only Globe (website) + GitHub */}
           {project.contact && (
             <div className="flex items-center gap-2 pt-2 border-t border-slate-700/50">
               {project.contact.website && (
@@ -191,18 +185,6 @@ export function RealProjectCard({ project }: { project: Project }) {
                   <Globe className="h-4 w-4" />
                 </a>
               )}
-              {project.contact.twitter && (
-                <a
-                  href={project.contact.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
-                  title="X (Twitter)"
-                >
-                  <Twitter className="h-4 w-4" />
-                </a>
-              )}
               {project.contact.github && (
                 <a
                   href={project.contact.github}
@@ -213,30 +195,6 @@ export function RealProjectCard({ project }: { project: Project }) {
                   title="GitHub"
                 >
                   <Github className="h-4 w-4" />
-                </a>
-              )}
-              {project.contact.linkedin && (
-                <a
-                  href={project.contact.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
-                  title="LinkedIn"
-                >
-                  <Linkedin className="h-4 w-4" />
-                </a>
-              )}
-              {project.contact.website && (
-                <a
-                  href={project.contact.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
-                  title="Website"
-                >
-                  <ExternalLink className="h-4 w-4" />
                 </a>
               )}
               <div className="flex-1" />
@@ -314,7 +272,6 @@ export function RealProjectCard({ project }: { project: Project }) {
             >
               <Github className="h-3 w-3" />
               View on GitHub
-              <ExternalLink className="h-3 w-3" />
             </a>
           </div>
         </div>
