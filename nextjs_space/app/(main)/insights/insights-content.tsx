@@ -43,6 +43,7 @@ interface ArcProject {
     email?: string;
     twitter?: string;
     github?: string;
+    website?: string;
   };
   tags: string[];
   verified: boolean;
@@ -282,6 +283,17 @@ export function InsightsContent() {
                       >
                         <Github className="h-3 w-3" />
                         GitHub
+                      </a>
+                    )}
+                    {project.contact.website && (
+                      <a
+                        href={project.contact.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all text-xs"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Website
                       </a>
                     )}
                   </div>

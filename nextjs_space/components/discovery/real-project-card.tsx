@@ -40,6 +40,7 @@ interface ArcProject {
     twitter?: string;
     github?: string;
     linkedin?: string;
+    website?: string;
   };
   tags: string[];
   verified: boolean;
@@ -222,6 +223,18 @@ export function RealProjectCard({ project }: { project: Project }) {
                   title="LinkedIn"
                 >
                   <Linkedin className="h-4 w-4" />
+                </a>
+              )}
+              {project.contact.website && (
+                <a
+                  href={project.contact.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
+                  title="Website"
+                >
+                  <ExternalLink className="h-4 w-4" />
                 </a>
               )}
               <div className="flex-1" />
