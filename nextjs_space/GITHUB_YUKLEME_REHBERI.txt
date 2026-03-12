@@ -181,5 +181,68 @@ EK BİLGİLER
   github.com → sağ üst profil fotoğrafı → orada yazar
 
 ================================================
+GÜNCELLEME YAPMA (Proje zaten GitHub'da varsa)
+================================================
+
+DeepAgent'ta değişiklik yaptıktan sonra GitHub'ı güncellemek için:
+
+
+1. DOSYALARI İNDİR
+------------------
+a) DeepAgent sayfasında sağ üstteki "Files" butonuna tıkla
+b) Zip dosyası inecek
+c) Zip'i bilgisayarına çıkart
+
+
+2. ESKİ DOSYALARI DEĞİŞTİR
+--------------------------
+a) Daha önce GitHub'a yüklediğin klasöre git
+b) İçindeki dosyaları sil (sadece .git klasörünü KORU, silme!)
+c) Yeni indirdiğin dosyaları bu klasöre kopyala
+
+
+3. .env DOSYASINI SİL
+---------------------
+⚠️ ÖNEMLİ: .env dosyasını bul ve SİL! GitHub'a yüklenmemeli.
+
+
+4. TERMİNAL AÇ
+--------------
+a) nextjs_space klasörüne git
+b) Boş bir yere sağ tıkla → "Terminalde aç"
+
+
+5. KOMUTLARI ÇALIŞTIR
+---------------------
+Sırayla şu komutları yaz:
+
+git add .
+
+git commit -m "Güncelleme açıklaması"
+
+git branch -M main
+
+git push
+
+
+6. KONTROL ET
+-------------
+GitHub sayfanı yenile, değişiklikler görünmeli.
+
+
+⚠️ HATA ALIRSAN:
+----------------
+"not a git repository" hatası alırsan:
+→ .git klasörü silinmiş demek. Şu komutları çalıştır:
+
+git init
+git add .
+git commit -m "Güncelleme"
+git branch -M main
+git remote add origin https://github.com/KULLANICI_ADIN/REPO_ADIN.git
+git push -u origin main --force
+
+
+================================================
 Bu rehber DeepAgent tarafından oluşturulmuştur.
 ================================================
