@@ -16,7 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Mail,
+  Globe,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -164,18 +164,20 @@ export function Sidebar() {
 
         {/* Contact & Partnerships */}
         <a
-          href="mailto:contact@entarc.xyz"
+          href="https://entarc.xyz"
+          target="_blank"
+          rel="noopener noreferrer"
           className={cn(
             'mb-2 flex items-center gap-3 rounded-xl px-4 py-3',
             'text-slate-400 transition-colors hover:bg-cyan-500/10 hover:text-cyan-400',
             collapsed && 'justify-center px-0'
           )}
         >
-          <Mail className="h-5 w-5 flex-shrink-0" />
+          <Globe className="h-5 w-5 flex-shrink-0" />
           {!collapsed && (
             <div className="flex flex-col">
               <span className="text-xs font-medium">Partnerships & Ads</span>
-              <span className="text-xs text-slate-500">contact@entarc.xyz</span>
+              <span className="text-xs text-slate-500">entarc.xyz</span>
             </div>
           )}
         </a>
