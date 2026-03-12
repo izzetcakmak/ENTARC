@@ -1,0 +1,185 @@
+================================================
+DEEPAGENT PROJESİNİ GITHUB'A YÜKLEME REHBERİ
+================================================
+Windows Kullanıcıları İçin Adım Adım Kılavuz
+================================================
+
+
+1. HAZIRLIK
+-----------
+
+a) GitHub hesabın yoksa: github.com adresinden ücretsiz hesap aç
+
+b) Git kurulu değilse: https://git-scm.com/download/win adresinden indir ve kur
+   (Kurulum sırasında tüm seçenekleri varsayılan bırakabilirsin)
+
+c) Git kurulu mu kontrol et:
+   - Windows + R bas → "cmd" yaz → Enter
+   - Şunu yaz: git --version
+   - "git version 2.x.x" görüyorsan kurulu demektir
+
+
+2. GITHUB'DA YENİ REPO OLUŞTUR
+------------------------------
+
+a) github.com'a giriş yap
+
+b) Sağ üstte "+" butonuna tıkla → "New repository" seç
+
+c) Ayarlar:
+   - Repository name: projenin-adi (örn: entarc)
+   - Description: Kısa açıklama (opsiyonel)
+   - Public veya Private seç
+   - ⚠️ ÖNEMLİ: "Add a README file" kutusunu İŞARETLEME!
+   
+d) "Create repository" butonuna tıkla
+
+
+3. PROJE DOSYALARINI İNDİR
+--------------------------
+
+a) DeepAgent sayfasında sağ üstteki "Files" butonuna tıkla
+
+b) Zip dosyası inecek
+
+c) Zip'i bir klasöre çıkart (örn: Masaüstü)
+
+
+4. ÖNEMLİ: .env DOSYASINI SİL
+-----------------------------
+
+⚠️ ÇOK ÖNEMLİ: GitHub gizli bilgileri (şifreler, API key'ler) kabul etmez!
+
+a) Çıkarttığın klasöre git (örn: proje_adi/nextjs_space/)
+
+b) ".env" adlı dosyayı bul ve SİL
+   (Dosya gizli olabilir, görmek için: Görünüm → Gizli öğeler'i işaretle)
+
+c) Bu dosya sadece senin bilgisayarında kalmalı, GitHub'a ASLA yüklenmemeli
+
+
+5. KLASÖRDE TERMİNAL AÇ
+-----------------------
+
+a) nextjs_space klasörünün içine git
+
+b) Klasörün boş bir yerine sağ tıkla
+
+c) "Terminalde aç" veya "Open in Terminal" seç
+
+   Alternatif yol:
+   - Klasörün üst kısmındaki adres çubuğuna tıkla
+   - "cmd" veya "powershell" yaz ve Enter bas
+
+
+6. GIT KOMUTLARINI ÇALIŞTIR
+---------------------------
+
+Terminalde şu komutları SIRAYLA yaz (her birinden sonra Enter bas):
+
+
+--- Adım 6.1: Git'e kendini tanıt (sadece ilk seferde) ---
+
+git config --global user.email "github-emailin@ornek.com"
+git config --global user.name "Senin İsmin"
+
+(GitHub hesabındaki email ve ismini yaz)
+
+
+--- Adım 6.2: Git'i başlat ---
+
+git init
+
+
+--- Adım 6.3: Dosyaları ekle ---
+
+git add .
+
+(Not: "git add" sonra boşluk, sonra nokta)
+
+
+--- Adım 6.4: Commit yap ---
+
+git commit -m "Initial commit"
+
+
+--- Adım 6.5: Branch adını ayarla ---
+
+git branch -M main
+
+
+--- Adım 6.6: GitHub repo'nu bağla ---
+
+git remote add origin https://github.com/KULLANICI_ADIN/REPO_ADIN.git
+
+(KULLANICI_ADIN ve REPO_ADIN kısımlarını kendi bilgilerinle değiştir)
+Örnek: git remote add origin https://github.com/ahmet/entarc.git
+
+
+--- Adım 6.7: GitHub'a gönder ---
+
+git push -u origin main
+
+(Bir pencere açılıp GitHub girişi isteyebilir - giriş yap ve izin ver)
+
+
+7. KONTROL ET
+-------------
+
+Tarayıcında şu adrese git:
+https://github.com/KULLANICI_ADIN/REPO_ADIN
+
+Dosyaları görüyorsan başardın! 🎉
+
+
+================================================
+SIK KARŞILAŞILAN SORUNLAR VE ÇÖZÜMLERİ
+================================================
+
+
+SORUN: "Author identity unknown" hatası
+ÇÖZÜM: Adım 6.1'deki git config komutlarını çalıştır
+
+
+SORUN: "Push cannot contain secrets" hatası
+ÇÖZÜM: .env dosyasını silmedin! Şu adımları uygula:
+
+1. .env dosyasını sil
+2. Şu komutları sırayla çalıştır:
+
+   PowerShell kullanıyorsan:
+   Remove-Item -Recurse -Force .git
+   
+   CMD kullanıyorsan:
+   rmdir /s /q .git
+
+3. Sonra Adım 6.2'den itibaren tekrar başla
+
+
+SORUN: "remote rejected" hatası
+ÇÖZÜM: Yukarıdaki "secrets" çözümünü uygula
+
+
+SORUN: "repository not found" hatası  
+ÇÖZÜM: GitHub'da repo oluşturdun mu kontrol et,
+       kullanıcı adı ve repo adını doğru yazdığından emin ol
+
+
+================================================
+EK BİLGİLER
+================================================
+
+- .gitignore dosyası: Bu dosya sayesinde node_modules, .env gibi
+  dosyalar otomatik olarak GitHub'a yüklenmez
+
+- Sonraki güncellemeler için:
+  git add .
+  git commit -m "Değişiklik açıklaması"
+  git push
+
+- GitHub kullanıcı adını bulmak için:
+  github.com → sağ üst profil fotoğrafı → orada yazar
+
+================================================
+Bu rehber DeepAgent tarafından oluşturulmuştur.
+================================================
