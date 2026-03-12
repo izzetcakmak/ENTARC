@@ -12,7 +12,7 @@ import {
   GitFork,
   ExternalLink,
   Activity,
-  Mail,
+  Globe,
   Linkedin,
   Twitter,
 } from 'lucide-react';
@@ -179,14 +179,16 @@ export function RealProjectCard({ project }: { project: Project }) {
           {/* Contact Links */}
           {project.contact && (
             <div className="flex items-center gap-2 pt-2 border-t border-slate-700/50">
-              {project.contact.email && (
+              {project.contact.website && (
                 <a
-                  href={`mailto:${project.contact.email}`}
+                  href={project.contact.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all"
-                  title={project.contact.email}
+                  className="flex items-center justify-center h-8 w-8 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all"
+                  title="Website"
                 >
-                  <Mail className="h-4 w-4" />
+                  <Globe className="h-4 w-4" />
                 </a>
               )}
               {project.contact.twitter && (

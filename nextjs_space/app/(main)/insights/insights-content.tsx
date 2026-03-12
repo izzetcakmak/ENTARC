@@ -13,7 +13,7 @@ import {
   Shield,
   Zap,
   Target,
-  Mail,
+  Globe,
   Twitter,
   Github,
   RefreshCw,
@@ -254,13 +254,15 @@ export function InsightsContent() {
                 {project.contact && (
                   <div className="mt-3 pt-3 border-t border-slate-700/50 flex items-center gap-2">
                     <span className="text-xs text-slate-500 mr-2">Contact:</span>
-                    {project.contact.email && (
+                    {project.contact.website && (
                       <a
-                        href={`mailto:${project.contact.email}`}
-                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all text-xs"
+                        href={project.contact.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all text-xs"
                       >
-                        <Mail className="h-3 w-3" />
-                        Email
+                        <Globe className="h-3 w-3" />
+                        Website
                       </a>
                     )}
                     {project.contact.twitter && (
@@ -283,17 +285,6 @@ export function InsightsContent() {
                       >
                         <Github className="h-3 w-3" />
                         GitHub
-                      </a>
-                    )}
-                    {project.contact.website && (
-                      <a
-                        href={project.contact.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all text-xs"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Website
                       </a>
                     )}
                   </div>
@@ -326,9 +317,9 @@ export function InsightsContent() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {project.contact?.email && (
-                  <a href={`mailto:${project.contact.email}`} className="p-1.5 rounded bg-slate-800/50 text-slate-400 hover:text-cyan-400">
-                    <Mail className="h-3.5 w-3.5" />
+                {project.contact?.website && (
+                  <a href={project.contact.website} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30">
+                    <Globe className="h-3.5 w-3.5" />
                   </a>
                 )}
                 {project.contact?.twitter && (
