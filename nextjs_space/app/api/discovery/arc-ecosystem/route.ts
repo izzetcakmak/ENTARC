@@ -54,27 +54,6 @@ const ARC_ECOSYSTEM_PROJECTS = [
     tags: ['voice-ai', 'wallet', 'openai', 'circle'],
   },
   {
-    id: 'stableswap-arc',
-    name: 'StableSwap Arc',
-    tagline: 'Curve-inspired AMM for Arc Network',
-    description: 'A Curve-inspired StableSwap automated market maker (AMM) with React frontend. Optimized for stablecoin swaps with minimal slippage on Arc Network.',
-    category: 'DeFi',
-    stage: 'Pre-TGE',
-    trustScore: 85,
-    sentiment: 'Bullish',
-    activityLevel: 'Moderate',
-    github: { stars: 0, commits30d: 34, contributors: 1, url: 'https://github.com/Kubudak90/stableswap-arc-network' },
-    social: { twitter: '@Kubudak90', discord: 0, mentions: 23 },
-    contact: { 
-      github: 'https://github.com/Kubudak90/stableswap-arc-network',
-      website: 'https://frontend-sigma-six-12.vercel.app'
-    },
-    funding: { raised: 0, target: 400000, backers: 0 },
-    arcHub: { votes: 234, comments: 34, verified: true },
-    team: ['Kubudak90'],
-    tags: ['amm', 'defi', 'stableswap', 'curve'],
-  },
-  {
     id: 'arcvote',
     name: 'ArcVote',
     tagline: 'Decentralized Voting dApp on Arc',

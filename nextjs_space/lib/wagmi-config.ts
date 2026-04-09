@@ -1,38 +1,44 @@
 // Wagmi Configuration - Arc Testnet
 // Web3 wallet connection setup for Arc Network
+// Configuration updated from Arc Node: https://github.com/circlefin/arc-node
 
 import { http, createConfig, createStorage } from 'wagmi';
 import { defineChain } from 'viem';
 import { injected } from 'wagmi/connectors';
+import { ARC_TESTNET_ADDRESSES, ARC_CHAIN_PARAMS } from './contracts/arc-testnet-addresses';
 
-// Arc Testnet Chain Definition
+// Arc Testnet Chain Definition (updated from Arc Network specification)
 export const arcTestnet = defineChain({
-  id: 5042002,
-  name: 'Arc Testnet',
+  id: ARC_CHAIN_PARAMS.CHAIN_ID,
+  name: ARC_CHAIN_PARAMS.CHAIN_NAME,
   nativeCurrency: {
-    name: 'USD Coin',
-    symbol: 'USDC',
-    decimals: 18,
+    name: ARC_CHAIN_PARAMS.NATIVE_CURRENCY.NAME,
+    symbol: ARC_CHAIN_PARAMS.NATIVE_CURRENCY.SYMBOL,
+    decimals: ARC_CHAIN_PARAMS.NATIVE_CURRENCY.DECIMALS,
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.testnet.arc.network'],
+      http: [ARC_CHAIN_PARAMS.RPC_URL],
     },
     public: {
-      http: ['https://rpc.testnet.arc.network'],
+      http: [ARC_CHAIN_PARAMS.RPC_URL],
     },
   },
   blockExplorers: {
     default: {
       name: 'ArcScan',
-      url: 'https://testnet.arcscan.app',
+      url: ARC_CHAIN_PARAMS.EXPLORER_URL,
     },
   },
   testnet: true,
 });
 
-// USDC Contract Address on Arc Testnet
-export const USDC_CONTRACT_ADDRESS = '0x3600000000000000000000000000000000000000' as const;
+// USDC Contract Address on Arc Testnet (from Arc Network config)
+export const USDC_CONTRACT_ADDRESS = ARC_TESTNET_ADDRESSES.TOKEN.ADDRESS as `0x${string}`;
+
+// Additional Arc Protocol contract addresses
+export const ARC_PROTOCOL_ADDRESSES = ARC_TESTNET_ADDRESSES;
+export const ARC_PROTOCOL_PARAMS = ARC_CHAIN_PARAMS;
 
 // Wagmi Config
 export const wagmiConfig = createConfig({

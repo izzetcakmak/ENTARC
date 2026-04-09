@@ -1,0 +1,47 @@
+{
+  "name": "Arc Testnet Configuration",
+  "source": "https://github.com/circlefin/arc-node",
+  "updated": "2025-04-09",
+  "chain": {
+    "chainId": 5042002,
+    "name": "Arc Testnet",
+    "currency": "ARC",
+    "decimals": 18
+  },
+  "tokens": {
+    "usdc": {
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "decimals": 6,
+      "proxyAddress": "0x49f78af090F1f98e7184B7f61f1F1a8a8064b40d",
+      "owner": "0xDC29Bab4A7d5425cA44eeF20a5B67E3D897F9a03",
+      "masterMinter": "0xc7EdB7223a08a11D05cbE83F436816F1dc7Ea541"
+    }
+  },
+  "protocol": {
+    "feeParams": {
+      "alpha": 20,
+      "kRate": 25,
+      "inverseElasticityMultiplier": 5000,
+      "minBaseFee": 1,
+      "maxBaseFee": 1000,
+      "blockGasLimit": 30000000
+    },
+    "owner": "0x2904f3A8226630b40cD5BF414fF5c112E2A0aAC6",
+    "controller": "0x5196FF0e6f24ca69d07539A0547fD84988D29feE"
+  },
+  "validators": {
+    "registerers": [
+      "0xB8217B0eFa254e56f902DB6cCA2f1Cd88E5251d5",
+      "0x5F3b933Bb7637944683eE6CECE4a24C8E1205c42"
+    ]
+  },
+  "rpc": {
+    "url": "https://rpc.testnet.arc.network",
+    "backup": []
+  },
+  "explorer": {
+    "name": "ArcScan",
+    "url": "https://testnet.arcscan.app"
+  }
+}
