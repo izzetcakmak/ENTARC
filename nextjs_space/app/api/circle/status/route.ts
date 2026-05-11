@@ -18,20 +18,24 @@ export async function GET() {
 
     // Test connectivity if configured
     let connected = false;
+    let connectionError = '';
     if (configured) {
       try {
         const { getCircleClient } = await import('@/lib/circle-client');
         const client = getCircleClient();
         const res = await client.listWalletSets({});
         connected = true;
-      } catch {
+      } catch (err: any) {
         connected = false;
+        connectionError = err?.message || 'Connection failed';
+        console.log('Circle connection test error:', connectionError);
       }
     }
 
     return NextResponse.json({
       configured,
       connected,
+      connectionError,
       features: {
         agentWallets: true,
         nanopayments: true,
