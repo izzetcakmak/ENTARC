@@ -17,6 +17,7 @@ import {
   ChevronRight,
   LogOut,
   Globe,
+  Bot,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -31,6 +32,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Discovery', href: '/discovery', icon: Compass },
   { label: 'Portfolio', href: '/portfolio', icon: Briefcase },
+  { label: 'Agent Hub', href: '/agent-hub', icon: Bot },
   { label: 'AI Insights', href: '/insights', icon: Brain },
   { label: 'Settings', href: '/settings', icon: Settings },
 ];
