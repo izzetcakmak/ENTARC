@@ -17,21 +17,21 @@ const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID || 'G-XXXXXXXXXX';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
-  title: 'ENTARC - Autonomous VC Agent | Arc Network',
-  description: 'AI-driven venture capital platform with milestone-based streaming payments on Arc Network. Discover, invest, and manage Web3 projects with intelligent analysis.',
-  keywords: ['ENTARC', 'VC', 'Web3', 'AI', 'Arc Network', 'Streaming', 'Milestone', 'Investment'],
+  title: 'ENTARC — Autonomous Venture Intelligence Agent on Arc',
+  description: 'AI-driven autonomous venture intelligence agent with milestone-based USDC streaming, adaptive portfolio management, and social signal intelligence on Arc Network.',
+  keywords: ['ENTARC', 'Autonomous Agent', 'Venture Intelligence', 'AI', 'Arc Network', 'Circle', 'USDC', 'Pre-TGE', 'Web3'],
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    title: 'ENTARC - Autonomous VC Agent',
-    description: 'AI-driven venture capital platform with milestone-based streaming payments',
+    title: 'ENTARC — Autonomous Venture Intelligence Agent on Arc',
+    description: 'AI-driven autonomous venture intelligence agent with adaptive portfolio management and social signal intelligence on Arc Network',
     siteName: 'ENTARC',
     images: ['/og-image.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ENTARC - Autonomous VC Agent',
-    description: 'AI-driven venture capital platform on Arc Network',
+    title: 'ENTARC — Autonomous Venture Intelligence Agent on Arc',
+    description: 'AI-driven autonomous venture intelligence agent on Arc Network',
     images: ['/og-image.png'],
   },
   icons: {

@@ -36,7 +36,7 @@ export function Header() {
         {/* Page Title */}
         <div>
           <h1 className="text-xl font-semibold text-white">{getPageTitle()}</h1>
-          <p className="text-xs text-slate-500">Arc Network • Autonomous VC Agent</p>
+          <p className="text-xs text-slate-500">Arc Network • Autonomous Venture Intelligence Agent</p>
         </div>
 
         {/* Search & Actions */}

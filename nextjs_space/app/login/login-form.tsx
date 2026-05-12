@@ -145,7 +145,7 @@ export function LoginForm() {
               ENT<span className="text-cyan-400">ARC</span>
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              Autonomous VC Agent on Arc Network
+              Autonomous Venture Intelligence Agent on Arc
             </p>
           </div>
 
