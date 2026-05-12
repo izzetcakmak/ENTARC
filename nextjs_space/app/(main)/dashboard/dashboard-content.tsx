@@ -8,6 +8,7 @@ import { StreamingChart } from '@/components/dashboard/streaming-chart';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { GlassCard } from '@/components/shared/glass-card';
 import { TreasuryDisplay } from '@/components/wallet/treasury-display';
+import { AgentWalletDisplay } from '@/components/wallet/agent-wallet-display';
 import { useEntarcStore } from '@/store/use-entarc-store';
 import { useEffect, useState } from 'react';
 import { Zap, Target, TrendingUp, Settings } from 'lucide-react';
@@ -59,28 +60,38 @@ export function DashboardContent() {
         </div>
       </div>
 
-      {/* Treasury Wallet Section */}
-      {isConnected ? (
-        <TreasuryDisplay />
-      ) : (
-        <GlassCard className="border-cyan-500/30 bg-gradient-to-br from-cyan-500/5 to-blue-500/5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-white">Treasury Wallet</h3>
-              <p className="mt-1 text-sm text-slate-400">
-                Connect your wallet to manage investments on Arc Testnet
-              </p>
-            </div>
-            <Link
-              href="/settings"
-              className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-400 transition-all hover:bg-cyan-500/20"
-            >
-              <Settings className="h-4 w-4" />
-              Connect Wallet
-            </Link>
-          </div>
-        </GlassCard>
-      )}
+      {/* Wallets Section */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Treasury Wallet (Personal - MetaMask) */}
+        <div>
+          {isConnected ? (
+            <TreasuryDisplay compact />
+          ) : (
+            <GlassCard className="border-cyan-500/30 bg-gradient-to-br from-cyan-500/5 to-blue-500/5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Treasury Wallet</h3>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Connect MetaMask for personal investments
+                  </p>
+                </div>
+                <Link
+                  href="/settings"
+                  className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-400 transition-all hover:bg-cyan-500/20"
+                >
+                  <Settings className="h-3 w-3" />
+                  Connect
+                </Link>
+              </div>
+            </GlassCard>
+          )}
+        </div>
+
+        {/* Agent Wallet (Autonomous - Circle) */}
+        <div>
+          <AgentWalletDisplay compact />
+        </div>
+      </div>
 
       {/* Metric Cards */}
       <MetricCards />

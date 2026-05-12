@@ -5,6 +5,7 @@
 
 import { GlassCard } from '@/components/shared/glass-card';
 import { WalletConnectButton } from '@/components/wallet/wallet-connect-button';
+import { AgentWalletDisplay } from '@/components/wallet/agent-wallet-display';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import {
@@ -78,6 +79,9 @@ export function SettingsContent() {
         </p>
         <WalletConnectButton showBalance={true} />
       </GlassCard>
+
+      {/* Agent Wallet - Circle Agent Stack */}
+      <AgentWalletDisplay />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Profile Settings */}
