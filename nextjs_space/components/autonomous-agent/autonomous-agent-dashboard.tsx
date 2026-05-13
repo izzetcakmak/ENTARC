@@ -792,7 +792,7 @@ export function AutonomousAgentDashboard() {
               { name: 'Milestone Escrow', desc: 'AI-verified milestone release', where: '#escrow', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
               { name: 'Nanopayments', desc: 'Sub-cent streaming USDC micro-payments', where: '#nanopay', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
               { name: 'Paymaster', desc: 'Gas-free USDC (Arc Testnet native)', where: '#', status: 'native', color: 'text-cyan-400', dot: 'bg-cyan-400' },
-              { name: 'CCTP / Gateway', desc: 'Cross-chain settlement ready', where: '#', status: 'ready', color: 'text-cyan-400', dot: 'bg-cyan-400' },
+              { name: 'CCTP / Gateway', desc: 'Cross-chain USDC bridge (Burn→Attest→Mint)', where: '/agent-hub', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
             ].map((t) => (
               <div key={t.name} className="flex items-center justify-between rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
                 <div>

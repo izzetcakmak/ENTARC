@@ -20,7 +20,6 @@ import {
   Cpu,
   Mail,
   User,
-  Smartphone,
   Globe,
   Key,
   Fingerprint,
@@ -451,215 +450,400 @@ export function AgentHubContent() {
   );
 }
 
-// ===== APP KIT DEMO COMPONENT =====
+// ===== APP KIT DEMO COMPONENT — Full: Onboard, Send, Swap, Bridge =====
+type AppKitTab = 'onboard' | 'send' | 'swap' | 'bridge';
+
 function AppKitDemo() {
-  const [onboardingMethod, setOnboardingMethod] = useState<'email' | 'social' | 'passkey'>('email');
+  const [activeTab, setActiveTab] = useState<AppKitTab>('onboard');
+
+  // Onboard state
+  const [onboardMethod, setOnboardMethod] = useState<'email' | 'social' | 'passkey'>('email');
   const [demoEmail, setDemoEmail] = useState('');
-  const [demoStep, setDemoStep] = useState<'idle' | 'processing' | 'creating-wallet' | 'complete'>('idle');
-  const [demoWallet, setDemoWallet] = useState<{ address: string; method: string } | null>(null);
+  const [onboardStep, setOnboardStep] = useState<'idle' | 'processing' | 'creating' | 'done'>('idle');
+  const [createdWallet, setCreatedWallet] = useState<string | null>(null);
 
-  const runAppKitDemo = async () => {
-    if (onboardingMethod === 'email' && !demoEmail) return;
-    setDemoStep('processing');
+  // Send state
+  const [sendTo, setSendTo] = useState('0x9a3f...dE7b');
+  const [sendAmount, setSendAmount] = useState('25.00');
+  const [sendStep, setSendStep] = useState<'idle' | 'signing' | 'confirming' | 'done'>('idle');
+  const [sendTxHash, setSendTxHash] = useState('');
 
-    // Simulate App Kit authentication flow
+  // Swap state
+  const [swapFrom, setSwapFrom] = useState('USDC');
+  const [swapTo, setSwapTo] = useState('WETH');
+  const [swapAmount, setSwapAmount] = useState('100');
+  const [swapStep, setSwapStep] = useState<'idle' | 'quoting' | 'executing' | 'done'>('idle');
+  const [swapResult, setSwapResult] = useState<{ received: string; rate: string; gas: string } | null>(null);
+
+  // Bridge state
+  const [bridgeFrom, setBridgeFrom] = useState('Arc Testnet');
+  const [bridgeTo, setBridgeTo] = useState('Ethereum Sepolia');
+  const [bridgeAmount, setBridgeAmount] = useState('500');
+  const [bridgeStep, setBridgeStep] = useState<'idle' | 'locking' | 'attesting' | 'minting' | 'done'>('idle');
+  const [bridgeResult, setBridgeResult] = useState<{ attestationHash: string; destTx: string } | null>(null);
+
+  const randomHex = (len: number) => Array.from({ length: len }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+  // === ONBOARD ===
+  const runOnboard = async () => {
+    if (onboardMethod === 'email' && !demoEmail) return;
+    setOnboardStep('processing');
     await new Promise(r => setTimeout(r, 1200));
-    setDemoStep('creating-wallet');
-
-    // Simulate wallet creation
+    setOnboardStep('creating');
     await new Promise(r => setTimeout(r, 1500));
+    setCreatedWallet(`0x${randomHex(40)}`);
+    setOnboardStep('done');
+  };
 
-    const walletAddr = `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-    setDemoWallet({
-      address: walletAddr,
-      method: onboardingMethod === 'email' ? `Email: ${demoEmail}` : onboardingMethod === 'social' ? 'Google OAuth' : 'Passkey (Biometric)',
+  // === SEND ===
+  const runSend = async () => {
+    setSendStep('signing');
+    await new Promise(r => setTimeout(r, 1000));
+    setSendStep('confirming');
+    await new Promise(r => setTimeout(r, 1500));
+    setSendTxHash(`0x${randomHex(64)}`);
+    setSendStep('done');
+  };
+
+  // === SWAP ===
+  const runSwap = async () => {
+    setSwapStep('quoting');
+    await new Promise(r => setTimeout(r, 1000));
+    setSwapStep('executing');
+    await new Promise(r => setTimeout(r, 1800));
+    const amt = parseFloat(swapAmount);
+    const rate = swapTo === 'WETH' ? 0.000385 : swapTo === 'WBTC' ? 0.0000148 : 1.0;
+    setSwapResult({
+      received: `${(amt * rate).toFixed(6)} ${swapTo}`,
+      rate: `1 USDC = ${rate} ${swapTo}`,
+      gas: '$0.00 (gas-free)',
     });
-    setDemoStep('complete');
+    setSwapStep('done');
   };
 
-  const resetDemo = () => {
-    setDemoStep('idle');
-    setDemoWallet(null);
-    setDemoEmail('');
+  // === BRIDGE (CCTP) ===
+  const runBridge = async () => {
+    setBridgeStep('locking');
+    await new Promise(r => setTimeout(r, 1200));
+    setBridgeStep('attesting');
+    await new Promise(r => setTimeout(r, 2000));
+    setBridgeStep('minting');
+    await new Promise(r => setTimeout(r, 1500));
+    setBridgeResult({
+      attestationHash: `0x${randomHex(64)}`,
+      destTx: `0x${randomHex(64)}`,
+    });
+    setBridgeStep('done');
   };
+
+  const tabs: { key: AppKitTab; label: string; icon: typeof Wallet }[] = [
+    { key: 'onboard', label: 'Onboard', icon: Key },
+    { key: 'send', label: 'Send', icon: ExternalLink },
+    { key: 'swap', label: 'Swap', icon: RefreshCw },
+    { key: 'bridge', label: 'Bridge', icon: Globe },
+  ];
+
+  const inputCls = 'w-full px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-violet-500/50';
+  const labelCls = 'text-xs text-gray-500 mb-1 block';
 
   return (
     <div className="rounded-xl bg-gray-900/50 border border-violet-500/30 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Globe className="w-5 h-5 text-violet-400" />
-          <h2 className="text-lg font-semibold text-white">Circle App Kit</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">
-            Wallet Onboarding
-          </span>
-        </div>
-        {demoStep === 'complete' && (
-          <button onClick={resetDemo} className="text-xs text-slate-400 hover:text-white transition-colors">
-            Reset Demo
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-1">
+        <Globe className="w-5 h-5 text-violet-400" />
+        <h2 className="text-lg font-semibold text-white">Circle App Kit</h2>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">Interactive Demo</span>
+      </div>
+      <p className="text-xs text-gray-400 mb-5">Embedded wallet experience — onboard users, send USDC, swap tokens, and bridge cross-chain via CCTP. No extensions needed.</p>
+
+      {/* Tab Bar */}
+      <div className="flex gap-1 mb-5 p-1 rounded-lg bg-gray-800/50 border border-gray-700/50">
+        {tabs.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all ${
+              activeTab === key
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {label}
           </button>
-        )}
+        ))}
       </div>
 
-      <p className="text-sm text-gray-400 mb-5">
-        Zero-friction wallet creation for users. No seed phrases, no extensions — just email, social login, or passkey. Powered by Circle&apos;s programmable wallets.
-      </p>
-
-      {demoStep === 'idle' && (
-        <div className="space-y-4">
-          {/* Method Selector */}
-          <div className="flex gap-2">
-            {[
-              { key: 'email' as const, label: 'Email', icon: Mail },
-              { key: 'social' as const, label: 'Google SSO', icon: User },
-              { key: 'passkey' as const, label: 'Passkey', icon: Fingerprint },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setOnboardingMethod(key)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm border transition-all ${
-                  onboardingMethod === key
-                    ? 'border-violet-500/50 bg-violet-500/10 text-violet-400'
-                    : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Input based on method */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              {onboardingMethod === 'email' && (
-                <div className="space-y-2">
-                  <label className="text-xs text-gray-500">User Email</label>
-                  <input
-                    type="email"
-                    value={demoEmail}
-                    onChange={(e) => setDemoEmail(e.target.value)}
-                    placeholder="investor@example.com"
-                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-violet-500/50"
-                  />
+      {/* ========== TAB: ONBOARD ========== */}
+      {activeTab === 'onboard' && (
+        <div>
+          {onboardStep === 'idle' && (
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                {([['email', 'Email', Mail], ['social', 'Google SSO', User], ['passkey', 'Passkey', Fingerprint]] as const).map(([k, lbl, Ic]) => (
+                  <button key={k} onClick={() => setOnboardMethod(k)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs border transition-all ${onboardMethod === k ? 'border-violet-500/50 bg-violet-500/10 text-violet-400' : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600'}`}>
+                    <Ic className="h-3.5 w-3.5" />{lbl}
+                  </button>
+                ))}
+              </div>
+              {onboardMethod === 'email' && (
+                <div>
+                  <label className={labelCls}>User Email</label>
+                  <input type="email" value={demoEmail} onChange={(e) => setDemoEmail(e.target.value)} placeholder="investor@example.com" className={inputCls} />
                 </div>
               )}
-              {onboardingMethod === 'social' && (
-                <div className="rounded-lg bg-gray-800 border border-gray-700 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-500/10">
-                      <User className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-white">Google OAuth 2.0</p>
-                      <p className="text-xs text-gray-400">One-click wallet via Google account</p>
-                    </div>
-                  </div>
+              {onboardMethod === 'social' && (
+                <div className="rounded-lg bg-gray-800 border border-gray-700 p-3 flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg bg-blue-500/10"><User className="w-4 h-4 text-blue-400" /></div>
+                  <div><p className="text-sm text-white">Google OAuth 2.0</p><p className="text-xs text-gray-400">One-click wallet creation</p></div>
                 </div>
               )}
-              {onboardingMethod === 'passkey' && (
-                <div className="rounded-lg bg-gray-800 border border-gray-700 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-500/10">
-                      <Fingerprint className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-white">WebAuthn / Passkey</p>
-                      <p className="text-xs text-gray-400">Face ID, Touch ID, or hardware key</p>
-                    </div>
-                  </div>
+              {onboardMethod === 'passkey' && (
+                <div className="rounded-lg bg-gray-800 border border-gray-700 p-3 flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg bg-emerald-500/10"><Fingerprint className="w-4 h-4 text-emerald-400" /></div>
+                  <div><p className="text-sm text-white">WebAuthn / Passkey</p><p className="text-xs text-gray-400">Face ID, Touch ID, hardware key</p></div>
                 </div>
               )}
-              <button
-                onClick={runAppKitDemo}
-                disabled={onboardingMethod === 'email' && !demoEmail}
-                className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Key className="h-4 w-4" />
-                Create Wallet via App Kit
+              <button onClick={runOnboard} disabled={onboardMethod === 'email' && !demoEmail}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all disabled:opacity-40">
+                <Key className="h-4 w-4" /> Create Wallet via App Kit
               </button>
             </div>
-
-            <div className="rounded-lg bg-gray-800/50 border border-gray-700 p-4">
-              <h4 className="text-xs text-gray-500 mb-3 uppercase tracking-wider">App Kit Features</h4>
-              <div className="space-y-2">
-                {[
-                  { label: 'No seed phrase needed', active: true },
-                  { label: 'Social login support', active: true },
-                  { label: 'Passkey / biometric auth', active: true },
-                  { label: 'Embedded wallet (no extension)', active: true },
-                  { label: 'Cross-platform (Web + Mobile)', active: true },
-                  { label: 'Circle programmable wallet', active: true },
-                ].map((f) => (
-                  <div key={f.label} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                    <span className="text-xs text-gray-300">{f.label}</span>
+          )}
+          {(onboardStep === 'processing' || onboardStep === 'creating') && (
+            <div className="flex flex-col items-center py-8">
+              <Loader2 className="w-7 h-7 text-violet-400 animate-spin mb-3" />
+              <p className="text-white text-sm font-medium">{onboardStep === 'processing' ? 'Authenticating...' : 'Creating Programmable Wallet...'}</p>
+              <div className="flex gap-3 mt-3">
+                {['Auth', 'Wallet', 'Fund'].map((s, i) => (
+                  <div key={s} className="flex items-center gap-1">
+                    <div className={`h-2 w-2 rounded-full ${(onboardStep === 'processing' && i === 0) || (onboardStep === 'creating' && i === 1) ? 'bg-violet-400 animate-pulse' : i < (onboardStep === 'creating' ? 1 : 0) ? 'bg-emerald-400' : 'bg-gray-600'}`} />
+                    <span className="text-xs text-gray-400">{s}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          )}
+          {onboardStep === 'done' && createdWallet && (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/30 p-4">
+                <div className="flex items-center gap-2 mb-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-emerald-400 text-sm font-medium">Wallet Ready</span></div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div><p className="text-gray-500">Address</p><code className="text-cyan-400 font-mono break-all">{createdWallet}</code></div>
+                  <div><p className="text-gray-500">Method</p><p className="text-white">{onboardMethod === 'email' ? demoEmail : onboardMethod === 'social' ? 'Google OAuth' : 'Passkey'}</p></div>
+                  <div><p className="text-gray-500">Network</p><p className="text-white">Arc Testnet</p></div>
+                  <div><p className="text-gray-500">Type</p><p className="text-white">Circle Programmable Wallet</p></div>
+                </div>
+              </div>
+              <button onClick={() => { setOnboardStep('idle'); setCreatedWallet(null); setDemoEmail(''); }} className="text-xs text-gray-400 hover:text-white transition-colors">Reset Demo</button>
+            </div>
+          )}
         </div>
       )}
 
-      {(demoStep === 'processing' || demoStep === 'creating-wallet') && (
-        <div className="flex flex-col items-center py-8">
-          <Loader2 className="w-8 h-8 text-violet-400 animate-spin mb-4" />
-          <p className="text-white font-medium">
-            {demoStep === 'processing' ? 'Authenticating via App Kit...' : 'Creating Circle Programmable Wallet...'}
-          </p>
-          <p className="text-gray-400 text-sm mt-1">
-            {demoStep === 'processing'
-              ? `Method: ${onboardingMethod === 'email' ? demoEmail : onboardingMethod === 'social' ? 'Google OAuth' : 'Passkey'}`
-              : 'Provisioning wallet on Arc Testnet'}
-          </p>
-          <div className="flex gap-3 mt-4">
-            {['Authenticate', 'Create Wallet', 'Fund USDC'].map((step, i) => (
-              <div key={step} className="flex items-center gap-1.5">
-                <div className={`h-2 w-2 rounded-full ${
-                  (demoStep === 'processing' && i === 0) || (demoStep === 'creating-wallet' && i === 1)
-                    ? 'bg-violet-400 animate-pulse'
-                    : i < (demoStep === 'creating-wallet' ? 1 : 0)
-                    ? 'bg-emerald-400'
-                    : 'bg-gray-600'
-                }`} />
-                <span className="text-xs text-gray-400">{step}</span>
+      {/* ========== TAB: SEND ========== */}
+      {activeTab === 'send' && (
+        <div>
+          {sendStep === 'idle' && (
+            <div className="space-y-3">
+              <div><label className={labelCls}>Recipient Address</label><input value={sendTo} onChange={(e) => setSendTo(e.target.value)} placeholder="0x..." className={inputCls} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={labelCls}>Amount (USDC)</label><input type="number" value={sendAmount} onChange={(e) => setSendAmount(e.target.value)} className={inputCls} /></div>
+                <div><label className={labelCls}>Network</label><div className="px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm">Arc Testnet</div></div>
               </div>
-            ))}
-          </div>
+              <div className="rounded-lg bg-gray-800/40 border border-gray-700/50 p-3 space-y-1">
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Gas Fee</span><span className="text-emerald-400">$0.00 (USDC native gas)</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Settlement</span><span className="text-white">&lt;1 second</span></div>
+              </div>
+              <button onClick={runSend} disabled={!sendTo || !sendAmount}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium transition-all disabled:opacity-40">
+                <ExternalLink className="h-4 w-4" /> Send USDC
+              </button>
+            </div>
+          )}
+          {(sendStep === 'signing' || sendStep === 'confirming') && (
+            <div className="flex flex-col items-center py-8">
+              <Loader2 className="w-7 h-7 text-cyan-400 animate-spin mb-3" />
+              <p className="text-white text-sm font-medium">{sendStep === 'signing' ? 'Signing Transaction...' : 'Confirming on Arc...'}</p>
+              <div className="flex gap-3 mt-3">
+                {['Sign', 'Broadcast', 'Confirm'].map((s, i) => (
+                  <div key={s} className="flex items-center gap-1">
+                    <div className={`h-2 w-2 rounded-full ${(sendStep === 'signing' && i === 0) || (sendStep === 'confirming' && i === 1) ? 'bg-cyan-400 animate-pulse' : i < (sendStep === 'confirming' ? 1 : 0) ? 'bg-emerald-400' : 'bg-gray-600'}`} />
+                    <span className="text-xs text-gray-400">{s}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {sendStep === 'done' && (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/30 p-4">
+                <div className="flex items-center gap-2 mb-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-emerald-400 text-sm font-medium">Transfer Complete</span></div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between"><span className="text-gray-500">Amount</span><span className="text-white">{sendAmount} USDC</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">To</span><span className="text-cyan-400 font-mono">{sendTo}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">TX Hash</span><span className="text-cyan-400 font-mono">{sendTxHash.slice(0, 20)}...</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Gas</span><span className="text-emerald-400">$0.00</span></div>
+                </div>
+              </div>
+              <button onClick={() => { setSendStep('idle'); setSendTxHash(''); }} className="text-xs text-gray-400 hover:text-white transition-colors">Send Another</button>
+            </div>
+          )}
         </div>
       )}
 
-      {demoStep === 'complete' && demoWallet && (
-        <div className="space-y-4">
-          <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/30 p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-              <span className="text-emerald-400 font-medium">Wallet Created via App Kit</span>
+      {/* ========== TAB: SWAP ========== */}
+      {activeTab === 'swap' && (
+        <div>
+          {swapStep === 'idle' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>From</label>
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">USDC</span>
+                    <input type="number" value={swapAmount} onChange={(e) => setSwapAmount(e.target.value)} className="bg-transparent text-white text-sm w-full focus:outline-none" />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>To</label>
+                  <select value={swapTo} onChange={(e) => setSwapTo(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:outline-none focus:border-violet-500/50">
+                    <option value="WETH">WETH</option>
+                    <option value="WBTC">WBTC</option>
+                    <option value="ARC">ARC</option>
+                  </select>
+                </div>
+              </div>
+              <div className="rounded-lg bg-gray-800/40 border border-gray-700/50 p-3 space-y-1">
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Estimated Rate</span><span className="text-white">1 USDC ≈ {swapTo === 'WETH' ? '0.000385 WETH' : swapTo === 'WBTC' ? '0.0000148 WBTC' : '2.45 ARC'}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Slippage</span><span className="text-white">0.5%</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Gas</span><span className="text-emerald-400">$0.00 (native USDC)</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-500">DEX</span><span className="text-violet-400">ArcSwap AMM</span></div>
+              </div>
+              <button onClick={runSwap} disabled={!swapAmount}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all disabled:opacity-40">
+                <RefreshCw className="h-4 w-4" /> Swap via App Kit
+              </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Wallet Address</p>
-                <code className="text-cyan-400 text-xs font-mono break-all">{demoWallet.address}</code>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Auth Method</p>
-                <p className="text-white text-sm">{demoWallet.method}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Network</p>
-                <p className="text-white text-sm">Arc Testnet</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Wallet Type</p>
-                <p className="text-white text-sm">Circle Programmable Wallet</p>
+          )}
+          {(swapStep === 'quoting' || swapStep === 'executing') && (
+            <div className="flex flex-col items-center py-8">
+              <Loader2 className="w-7 h-7 text-violet-400 animate-spin mb-3" />
+              <p className="text-white text-sm font-medium">{swapStep === 'quoting' ? 'Fetching Best Route...' : 'Executing Swap...'}</p>
+              <div className="flex gap-3 mt-3">
+                {['Quote', 'Approve', 'Swap'].map((s, i) => (
+                  <div key={s} className="flex items-center gap-1">
+                    <div className={`h-2 w-2 rounded-full ${(swapStep === 'quoting' && i === 0) || (swapStep === 'executing' && i >= 1) ? (i <= 1 ? 'bg-violet-400 animate-pulse' : 'bg-gray-600') : i < 1 ? 'bg-emerald-400' : 'bg-gray-600'}`} />
+                    <span className="text-xs text-gray-400">{s}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-          <div className="rounded-lg bg-gray-800/30 border border-gray-700 p-3">
-            <p className="text-xs text-gray-400">
-              <span className="text-violet-400 font-medium">App Kit Flow:</span> User authenticates ({demoWallet.method}) → Circle creates embedded wallet → Wallet funded with USDC on Arc → User can invest without MetaMask or seed phrases
-            </p>
-          </div>
+          )}
+          {swapStep === 'done' && swapResult && (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/30 p-4">
+                <div className="flex items-center gap-2 mb-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-emerald-400 text-sm font-medium">Swap Complete</span></div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between"><span className="text-gray-500">Sent</span><span className="text-white">{swapAmount} USDC</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Received</span><span className="text-emerald-400">{swapResult.received}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Rate</span><span className="text-white">{swapResult.rate}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Gas</span><span className="text-emerald-400">{swapResult.gas}</span></div>
+                </div>
+              </div>
+              <button onClick={() => { setSwapStep('idle'); setSwapResult(null); }} className="text-xs text-gray-400 hover:text-white transition-colors">Swap Again</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========== TAB: BRIDGE (CCTP) ========== */}
+      {activeTab === 'bridge' && (
+        <div>
+          {bridgeStep === 'idle' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>From Chain</label>
+                  <select value={bridgeFrom} onChange={(e) => setBridgeFrom(e.target.value)} className={inputCls}>
+                    <option>Arc Testnet</option>
+                    <option>Ethereum Sepolia</option>
+                    <option>Avalanche Fuji</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>To Chain</label>
+                  <select value={bridgeTo} onChange={(e) => setBridgeTo(e.target.value)} className={inputCls}>
+                    <option>Ethereum Sepolia</option>
+                    <option>Arc Testnet</option>
+                    <option>Avalanche Fuji</option>
+                    <option>Arbitrum Sepolia</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>Amount (USDC)</label>
+                <input type="number" value={bridgeAmount} onChange={(e) => setBridgeAmount(e.target.value)} className={inputCls} />
+              </div>
+              <div className="rounded-lg bg-gray-800/40 border border-gray-700/50 p-3 space-y-1">
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Protocol</span><span className="text-violet-400">Circle CCTP v2</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Mechanism</span><span className="text-white">Burn → Attest → Mint</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Est. Time</span><span className="text-white">~2-5 minutes</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-500">Fee</span><span className="text-emerald-400">$0.00 (native USDC bridge)</span></div>
+              </div>
+              <button onClick={runBridge} disabled={!bridgeAmount || bridgeFrom === bridgeTo}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-all disabled:opacity-40">
+                <Globe className="h-4 w-4" /> Bridge via CCTP
+              </button>
+            </div>
+          )}
+          {bridgeStep !== 'idle' && bridgeStep !== 'done' && (
+            <div className="flex flex-col items-center py-8">
+              <Loader2 className="w-7 h-7 text-emerald-400 animate-spin mb-3" />
+              <p className="text-white text-sm font-medium">
+                {bridgeStep === 'locking' ? `Burning USDC on ${bridgeFrom}...` : bridgeStep === 'attesting' ? 'Circle Attestation Service verifying...' : `Minting USDC on ${bridgeTo}...`}
+              </p>
+              <div className="flex gap-2 mt-4">
+                {[
+                  { label: 'Burn', chain: bridgeFrom },
+                  { label: 'Attest', chain: 'Circle' },
+                  { label: 'Mint', chain: bridgeTo },
+                ].map((s, i) => {
+                  const stepIdx = bridgeStep === 'locking' ? 0 : bridgeStep === 'attesting' ? 1 : 2;
+                  return (
+                    <div key={s.label} className="flex flex-col items-center gap-1">
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                        i === stepIdx ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 animate-pulse'
+                        : i < stepIdx ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-gray-800 text-gray-500 border border-gray-700'
+                      }`}>{i + 1}</div>
+                      <span className="text-xs text-gray-400">{s.label}</span>
+                      <span className="text-xs text-gray-600">{s.chain}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {bridgeStep === 'done' && bridgeResult && (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/30 p-4">
+                <div className="flex items-center gap-2 mb-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-emerald-400 text-sm font-medium">Bridge Complete — CCTP</span></div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between"><span className="text-gray-500">Amount</span><span className="text-white">{bridgeAmount} USDC</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Route</span><span className="text-white">{bridgeFrom} → {bridgeTo}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Attestation</span><span className="text-cyan-400 font-mono">{bridgeResult.attestationHash.slice(0, 22)}...</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Dest TX</span><span className="text-cyan-400 font-mono">{bridgeResult.destTx.slice(0, 22)}...</span></div>
+                </div>
+              </div>
+              <div className="rounded-lg bg-gray-800/30 border border-gray-700 p-2">
+                <p className="text-xs text-gray-400"><span className="text-violet-400 font-medium">CCTP Flow:</span> USDC burned on {bridgeFrom} → Circle attestation verifies → Native USDC minted on {bridgeTo}</p>
+              </div>
+              <button onClick={() => { setBridgeStep('idle'); setBridgeResult(null); }} className="text-xs text-gray-400 hover:text-white transition-colors">Bridge Again</button>
+            </div>
+          )}
         </div>
       )}
     </div>
