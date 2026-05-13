@@ -34,19 +34,19 @@ const UI: Record<Lang, {
   hackathon: string;
 }> = {
   en: {
-    tryApp: 'Try the App \u2192',
+    tryApp: 'Try the App →',
     autoPlay: 'Auto Play',
     pause: 'Pause',
     presenting: 'PRESENTING',
-    kbHint: '\u2190 \u2192 arrows to navigate | Space to play/pause',
+    kbHint: '← → arrows to navigate | Space to play/pause',
     hackathon: 'Agora Agents Hackathon 2026',
   },
   tr: {
-    tryApp: 'Uygulamay\u0131 Dene \u2192',
+    tryApp: 'Uygulamayı Dene →',
     autoPlay: 'Otomatik Oynat',
     pause: 'Duraklat',
     presenting: 'SUNUYOR',
-    kbHint: '\u2190 \u2192 tu\u015flar\u0131 ile gezin | Space ile oynat/duraklat',
+    kbHint: '← → tuşları ile gezin | Space ile oynat/duraklat',
     hackathon: 'Agora Agents Hackathon 2026',
   },
 };
@@ -55,76 +55,76 @@ const SLIDES: SlideData[] = [
   {
     id: 'intro',
     title: { en: 'What is ENTARC?', tr: 'ENTARC Nedir?' },
-    subtitle: { en: 'Autonomous Venture Intelligence Agent on Arc Network', tr: 'Arc Network \u00fczerinde Otonom Giri\u015fim Zeka Ajan\u0131' },
+    subtitle: { en: 'Autonomous Venture Intelligence Agent on Arc Network', tr: 'Arc Network üzerinde Otonom Girişim Zeka Ajanı' },
     badge: 'Agora Agents Hackathon',
     badgeColor: 'from-purple-500 to-pink-500',
     bullets: [
-      { icon: <Brain className="w-5 h-5" />, text: { en: 'An autonomous AI agent running on', tr: 'Arc Network \u00fczerinde \u00e7al\u0131\u015fan' }, highlight: { en: 'Arc Network', tr: 'otonom yapay zeka ajan\u0131' } },
-      { icon: <Target className="w-5 h-5" />, text: { en: 'Analyzes pre-TGE projects, makes investment decisions', tr: 'Pre-TGE projeleri analiz eder, yat\u0131r\u0131m kararlar\u0131n\u0131' }, highlight: { en: 'fully autonomous', tr: 'tamamen otonom al\u0131r' } },
-      { icon: <Shield className="w-5 h-5" />, text: { en: 'Circle Agent Stack with', tr: 'Circle Agent Stack ile' }, highlight: { en: 'developer-controlled wallets', tr: 'developer-controlled c\u00fczdan y\u00f6netimi' } },
-      { icon: <DollarSign className="w-5 h-5" />, text: { en: 'Milestone-based USDC streaming for', tr: 'Milestone-based USDC streaming ile' }, highlight: { en: 'secure fund management', tr: 'g\u00fcvenli fon y\u00f6netimi' } },
+      { icon: <Brain className="w-5 h-5" />, text: { en: 'An autonomous AI agent running on', tr: 'Arc Network üzerinde çalışan' }, highlight: { en: 'Arc Network', tr: 'otonom yapay zeka ajanı' } },
+      { icon: <Target className="w-5 h-5" />, text: { en: 'Analyzes pre-TGE projects, makes investment decisions', tr: 'Pre-TGE projeleri analiz eder, yatırım kararlarını' }, highlight: { en: 'fully autonomous', tr: 'tamamen otonom alır' } },
+      { icon: <Shield className="w-5 h-5" />, text: { en: 'Circle Agent Stack with', tr: 'Circle Agent Stack ile' }, highlight: { en: 'developer-controlled wallets', tr: 'developer-controlled cüzdan yönetimi' } },
+      { icon: <DollarSign className="w-5 h-5" />, text: { en: 'Milestone-based USDC streaming for', tr: 'Milestone-based USDC streaming ile' }, highlight: { en: 'secure fund management', tr: 'güvenli fon yönetimi' } },
     ],
     gradient: 'from-cyan-500/20 via-transparent to-purple-500/20',
   },
   {
     id: 'problem',
-    title: { en: 'What Problems Does It Solve?', tr: 'Hangi Sorunlar\u0131 \u00c7\u00f6z\u00fcyor?' },
-    subtitle: { en: 'The biggest challenges in Web3 venture capital', tr: 'Web3 venture capital\'daki en b\u00fcy\u00fck problemler' },
-    badge: 'Problem \u2192 Solution',
+    title: { en: 'What Problems Does It Solve?', tr: 'Hangi Sorunları Çözüyor?' },
+    subtitle: { en: 'The biggest challenges in Web3 venture capital', tr: 'Web3 venture capital\'daki en büyük problemler' },
+    badge: 'Problem → Solution',
     badgeColor: 'from-red-500 to-orange-500',
     bullets: [
-      { icon: <Zap className="w-5 h-5" />, text: { en: 'Manual due diligence is too slow \u2192', tr: 'Manuel due diligence \u00e7ok yava\u015f \u2192' }, highlight: { en: 'AI-powered real-time analysis', tr: 'AI-powered ger\u00e7ek zamanl\u0131 analiz' } },
-      { icon: <Lock className="w-5 h-5" />, text: { en: 'Funds sent in a single lump sum \u2192', tr: 'Fonlar tek seferde g\u00f6nderiliyor \u2192' }, highlight: { en: 'Milestone-based escrow security', tr: 'Milestone-based escrow ile g\u00fcvenlik' } },
-      { icon: <BarChart3 className="w-5 h-5" />, text: { en: 'Data sources are fragmented \u2192', tr: 'Veri kaynaklar\u0131 da\u011f\u0131n\u0131k \u2192' }, highlight: { en: '5 signal sources unified in one panel', tr: '5 sinyal kayna\u011f\u0131 tek panelde birle\u015fik' } },
-      { icon: <Globe className="w-5 h-5" />, text: { en: 'Cross-chain transfers are hard \u2192', tr: 'Cross-chain transfer zor \u2192' }, highlight: { en: 'Automatic CCTP bridge', tr: 'CCTP ile otomatik bridge' } },
+      { icon: <Zap className="w-5 h-5" />, text: { en: 'Manual due diligence is too slow →', tr: 'Manuel due diligence çok yavaş →' }, highlight: { en: 'AI-powered real-time analysis', tr: 'AI-powered gerçek zamanlı analiz' } },
+      { icon: <Lock className="w-5 h-5" />, text: { en: 'Funds sent in a single lump sum →', tr: 'Fonlar tek seferde gönderiliyor →' }, highlight: { en: 'Milestone-based escrow security', tr: 'Milestone-based escrow ile güvenlik' } },
+      { icon: <BarChart3 className="w-5 h-5" />, text: { en: 'Data sources are fragmented →', tr: 'Veri kaynakları dağınık →' }, highlight: { en: '5 signal sources unified in one panel', tr: '5 sinyal kaynağı tek panelde birleşik' } },
+      { icon: <Globe className="w-5 h-5" />, text: { en: 'Cross-chain transfers are hard →', tr: 'Cross-chain transfer zor →' }, highlight: { en: 'Automatic CCTP bridge', tr: 'CCTP ile otomatik bridge' } },
     ],
     gradient: 'from-red-500/20 via-transparent to-yellow-500/20',
   },
   {
     id: 'agent',
     title: { en: 'Autonomous Agent Dashboard', tr: 'Otonom Agent Dashboard' },
-    subtitle: { en: 'All operations from one screen \u2014 real API calls', tr: 'T\u00fcm operasyonlar tek ekrandan \u2014 ger\u00e7ek API \u00e7a\u011fr\u0131lar\u0131' },
+    subtitle: { en: 'All operations from one screen — real API calls', tr: 'Tüm operasyonlar tek ekrandan — gerçek API çağrıları' },
     badge: 'LIVE DEMO',
     badgeColor: 'from-emerald-500 to-cyan-500',
     demoLink: '/autonomous-agent',
-    demoLabel: { en: 'Open Agent Dashboard', tr: 'Agent Dashboard\'u A\u00e7' },
+    demoLabel: { en: 'Open Agent Dashboard', tr: 'Agent Dashboard\'u Aç' },
     bullets: [
       { icon: <Radio className="w-5 h-5" />, text: { en: 'Signal Aggregator:', tr: 'Signal Aggregator:' }, highlight: { en: 'GitHub, Social, On-chain, Market, Sentiment', tr: 'GitHub, Social, On-chain, Market, Sentiment' } },
       { icon: <BarChart3 className="w-5 h-5" />, text: { en: 'Portfolio Manager:', tr: 'Portfolio Manager:' }, highlight: { en: 'Risk regime analysis & rebalancing', tr: 'Risk rejimi analizi ve rebalancing' } },
-      { icon: <Lock className="w-5 h-5" />, text: { en: 'Escrow Operations:', tr: 'Escrow Operations:' }, highlight: { en: 'Create, Release, Pause \u2014 with USDC', tr: 'Create, Release, Pause \u2014 USDC ile' } },
-      { icon: <DollarSign className="w-5 h-5" />, text: { en: 'Nanopayment Streaming:', tr: 'Nanopayment Streaming:' }, highlight: { en: '$0.001/sec micro-payment flow', tr: '$0.001/sn mikro \u00f6deme ak\u0131\u015f\u0131' } },
+      { icon: <Lock className="w-5 h-5" />, text: { en: 'Escrow Operations:', tr: 'Escrow Operations:' }, highlight: { en: 'Create, Release, Pause — with USDC', tr: 'Create, Release, Pause — USDC ile' } },
+      { icon: <DollarSign className="w-5 h-5" />, text: { en: 'Nanopayment Streaming:', tr: 'Nanopayment Streaming:' }, highlight: { en: '$0.001/sec micro-payment flow', tr: '$0.001/sn mikro ödeme akışı' } },
     ],
     gradient: 'from-emerald-500/20 via-transparent to-cyan-500/20',
   },
   {
     id: 'circle',
     title: { en: 'Circle Agent Stack', tr: 'Circle Agent Stack' },
-    subtitle: { en: 'Developer-controlled wallets + CCTP bridge', tr: 'Developer-controlled c\u00fczdanlar + CCTP bridge' },
+    subtitle: { en: 'Developer-controlled wallets + CCTP bridge', tr: 'Developer-controlled cüzdanlar + CCTP bridge' },
     badge: 'CIRCLE TOOLING',
     badgeColor: 'from-blue-500 to-indigo-500',
     demoLink: '/agent-hub',
-    demoLabel: { en: 'Open Agent Hub', tr: 'Agent Hub\'u A\u00e7' },
+    demoLabel: { en: 'Open Agent Hub', tr: 'Agent Hub\'u Aç' },
     bullets: [
-      { icon: <Wallet className="w-5 h-5" />, text: { en: 'Programmable Wallets:', tr: 'Programmable Wallets:' }, highlight: { en: 'Autonomous wallet creation via API', tr: 'API ile otonom c\u00fczdan olu\u015fturma' } },
+      { icon: <Wallet className="w-5 h-5" />, text: { en: 'Programmable Wallets:', tr: 'Programmable Wallets:' }, highlight: { en: 'Autonomous wallet creation via API', tr: 'API ile otonom cüzdan oluşturma' } },
       { icon: <CircleDot className="w-5 h-5" />, text: { en: 'Faucet Integration:', tr: 'Faucet Integration:' }, highlight: { en: 'Auto test USDC funding', tr: 'Otomatik test USDC funding' } },
-      { icon: <ArrowRightLeft className="w-5 h-5" />, text: { en: 'CCTP Bridge:', tr: 'CCTP Bridge:' }, highlight: { en: 'Burn \u2192 Attest \u2192 Mint cross-chain', tr: 'Burn \u2192 Attest \u2192 Mint cross-chain' } },
-      { icon: <Layers className="w-5 h-5" />, text: { en: 'App Kit Demo:', tr: 'App Kit Demo:' }, highlight: { en: 'Onboard, Send, Swap, Bridge \u2014 4 tabs', tr: 'Onboard, Send, Swap, Bridge \u2014 4 tab' } },
+      { icon: <ArrowRightLeft className="w-5 h-5" />, text: { en: 'CCTP Bridge:', tr: 'CCTP Bridge:' }, highlight: { en: 'Burn → Attest → Mint cross-chain', tr: 'Burn → Attest → Mint cross-chain' } },
+      { icon: <Layers className="w-5 h-5" />, text: { en: 'App Kit Demo:', tr: 'App Kit Demo:' }, highlight: { en: 'Onboard, Send, Swap, Bridge — 4 tabs', tr: 'Onboard, Send, Swap, Bridge — 4 tab' } },
     ],
     gradient: 'from-blue-500/20 via-transparent to-indigo-500/20',
   },
   {
     id: 'discovery',
     title: { en: 'Arc Ecosystem Discovery', tr: 'Arc Ecosystem Discovery' },
-    subtitle: { en: 'Discover and analyze pre-TGE projects', tr: 'Pre-TGE projeleri ke\u015ffet ve analiz et' },
+    subtitle: { en: 'Discover and analyze pre-TGE projects', tr: 'Pre-TGE projeleri keşfet ve analiz et' },
     badge: 'PRE-TGE',
     badgeColor: 'from-amber-500 to-orange-500',
     demoLink: '/discovery',
-    demoLabel: { en: 'Open Discovery', tr: 'Discovery\'yi A\u00e7' },
+    demoLabel: { en: 'Open Discovery', tr: 'Discovery\'yi Aç' },
     bullets: [
-      { icon: <Globe className="w-5 h-5" />, text: { en: 'Real Arc ecosystem projects via', tr: 'Arc \u00fczerindeki ger\u00e7ek projeleri' }, highlight: { en: 'live API listing', tr: 'canl\u0131 API ile listeleme' } },
-      { icon: <TrendingUp className="w-5 h-5" />, text: { en: 'AI Trust Score:', tr: 'AI Trust Score:' }, highlight: { en: 'Reliability score for every project', tr: 'Her proje i\u00e7in g\u00fcvenilirlik puan\u0131' } },
-      { icon: <Sparkles className="w-5 h-5" />, text: { en: 'AI Insights:', tr: 'AI Insights:' }, highlight: { en: 'Automated investment recommendations', tr: 'Otomatik yat\u0131r\u0131m \u00f6nerileri' } },
-      { icon: <BarChart3 className="w-5 h-5" />, text: { en: 'Portfolio tracking:', tr: 'Portfolio tracking:' }, highlight: { en: 'ROI, P/L real-time monitoring', tr: 'ROI, P/L ger\u00e7ek zamanl\u0131 takip' } },
+      { icon: <Globe className="w-5 h-5" />, text: { en: 'Real Arc ecosystem projects via', tr: 'Arc üzerindeki gerçek projeleri' }, highlight: { en: 'live API listing', tr: 'canlı API ile listeleme' } },
+      { icon: <TrendingUp className="w-5 h-5" />, text: { en: 'AI Trust Score:', tr: 'AI Trust Score:' }, highlight: { en: 'Reliability score for every project', tr: 'Her proje için güvenilirlik puanı' } },
+      { icon: <Sparkles className="w-5 h-5" />, text: { en: 'AI Insights:', tr: 'AI Insights:' }, highlight: { en: 'Automated investment recommendations', tr: 'Otomatik yatırım önerileri' } },
+      { icon: <BarChart3 className="w-5 h-5" />, text: { en: 'Portfolio tracking:', tr: 'Portfolio tracking:' }, highlight: { en: 'ROI, P/L real-time monitoring', tr: 'ROI, P/L gerçek zamanlı takip' } },
     ],
     gradient: 'from-amber-500/20 via-transparent to-orange-500/20',
   },
@@ -135,10 +135,10 @@ const SLIDES: SlideData[] = [
     badge: '$50K PRIZE POOL',
     badgeColor: 'from-yellow-500 to-amber-500',
     bullets: [
-      { icon: <Brain className="w-5 h-5" />, text: { en: 'Agentic Sophistication:', tr: 'Agentic Sophistication:' }, highlight: { en: '5-source signal fusion, autonomous decisions', tr: '5 kaynakl\u0131 sinyal f\u00fczyonu, otonom kararlar' } },
-      { icon: <Rocket className="w-5 h-5" />, text: { en: 'Traction:', tr: 'Traction:' }, highlight: { en: 'Deployed on entarc.xyz \u2014 fully functional', tr: 'entarc.xyz\'de yay\u0131nda \u2014 tam fonksiyonel' } },
-      { icon: <CircleDot className="w-5 h-5" />, text: { en: 'Circle Tooling:', tr: 'Circle Tooling:' }, highlight: { en: 'Wallets, CCTP, Faucet, App Kit \u2014 full stack', tr: 'Wallets, CCTP, Faucet, App Kit \u2014 t\u00fcm stack' } },
-      { icon: <Sparkles className="w-5 h-5" />, text: { en: 'Innovation:', tr: 'Innovation:' }, highlight: { en: 'First autonomous VC agent on Arc Network', tr: '\u0130lk otonom VC agent on Arc Network' } },
+      { icon: <Brain className="w-5 h-5" />, text: { en: 'Agentic Sophistication:', tr: 'Agentic Sophistication:' }, highlight: { en: '5-source signal fusion, autonomous decisions', tr: '5 kaynaklı sinyal füzyonu, otonom kararlar' } },
+      { icon: <Rocket className="w-5 h-5" />, text: { en: 'Traction:', tr: 'Traction:' }, highlight: { en: 'Deployed on entarc.xyz — fully functional', tr: 'entarc.xyz\'de yayında — tam fonksiyonel' } },
+      { icon: <CircleDot className="w-5 h-5" />, text: { en: 'Circle Tooling:', tr: 'Circle Tooling:' }, highlight: { en: 'Wallets, CCTP, Faucet, App Kit — full stack', tr: 'Wallets, CCTP, Faucet, App Kit — tüm stack' } },
+      { icon: <Sparkles className="w-5 h-5" />, text: { en: 'Innovation:', tr: 'Innovation:' }, highlight: { en: 'First autonomous VC agent on Arc Network', tr: 'İlk otonom VC agent on Arc Network' } },
     ],
     gradient: 'from-yellow-500/20 via-transparent to-emerald-500/20',
   },
@@ -260,7 +260,7 @@ export default function DemoContent() {
           <button
             onClick={() => setLang(prev => prev === 'en' ? 'tr' : 'en')}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-xs"
-            title={lang === 'en' ? 'T\u00fcrk\u00e7e\'ye ge\u00e7' : 'Switch to English'}
+            title={lang === 'en' ? 'Türkçe\'ye geç' : 'Switch to English'}
           >
             <Languages className="w-3.5 h-3.5 text-slate-400" />
             <span className={lang === 'en' ? 'text-cyan-400 font-semibold' : 'text-slate-500'}>EN</span>
@@ -301,9 +301,9 @@ export default function DemoContent() {
 
             {/* Presenter info */}
             <div className="text-center space-y-1 mb-6">
-              <h3 className="text-sm font-semibold text-white">\u0130zzet \u00c7akmak</h3>
+              <h3 className="text-sm font-semibold text-white">İzzet Çakmak</h3>
               <p className="text-xs text-slate-400">Founder & Lead Developer</p>
-              <p className="text-[10px] text-cyan-400/80">ENTARC \u2014 Arc Network</p>
+              <p className="text-[10px] text-cyan-400/80">ENTARC — Arc Network</p>
             </div>
 
             {/* Slide navigation dots */}
@@ -420,7 +420,7 @@ export default function DemoContent() {
                   >
                     <ExternalLink className="w-4 h-4" />
                     {slide.demoLabel[lang]}
-                    <span className="group-hover:translate-x-1 transition-transform">\u2192</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
                   </Link>
                 </div>
               )}
