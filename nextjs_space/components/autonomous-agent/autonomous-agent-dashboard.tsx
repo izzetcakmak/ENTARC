@@ -90,10 +90,21 @@ interface EscrowResult {
   circleIntegration?: any;
 }
 
+interface NanopaymentStream {
+  streamId: string;
+  recipientProject: string;
+  amountPerSecond: number;
+  totalBudget: number;
+  durationSeconds: number;
+  status: string;
+  txHash: string;
+  network: string;
+}
+
 interface DecisionLogEntry {
   id: string;
   timestamp: string;
-  type: 'signal' | 'rebalance' | 'escrow' | 'risk';
+  type: 'signal' | 'rebalance' | 'escrow' | 'risk' | 'nanopay';
   action: string;
   details: string;
   status: 'success' | 'pending' | 'error';
@@ -159,6 +170,10 @@ export function AutonomousAgentDashboard() {
   const [loadingPortfolio, setLoadingPortfolio] = useState(false);
   const [loadingEscrow, setLoadingEscrow] = useState(false);
   const [escrowAction, setEscrowAction] = useState<'create' | 'release' | 'check' | 'pause'>('create');
+  const [nanopayStream, setNanopayStream] = useState<NanopaymentStream | null>(null);
+  const [loadingNanopay, setLoadingNanopay] = useState(false);
+  const [streamingTick, setStreamingTick] = useState(0);
+  const [streamActive, setStreamActive] = useState(false);
 
   const addLog = useCallback((entry: Omit<DecisionLogEntry, 'id' | 'timestamp'>) => {
     setDecisionLog(prev => [{
@@ -259,6 +274,70 @@ export function AutonomousAgentDashboard() {
       addLog({ type: 'escrow', action: 'Escrow Error', details: err.message, status: 'error' });
     }
     setLoadingEscrow(false);
+  };
+
+  // ===== 4) NANOPAYMENT STREAMING =====
+  useEffect(() => {
+    if (!streamActive || !nanopayStream) return;
+    const interval = setInterval(() => {
+      setStreamingTick(prev => {
+        const next = prev + 1;
+        if (next >= (nanopayStream.durationSeconds || 60)) {
+          setStreamActive(false);
+          addLog({ type: 'nanopay', action: 'Stream Completed', details: `${nanopayStream.recipientProject} — $${(nanopayStream.amountPerSecond * next).toFixed(6)} USDC total`, status: 'success' });
+        }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [streamActive, nanopayStream, addLog]);
+
+  const startNanopayStream = async () => {
+    setLoadingNanopay(true);
+    addLog({ type: 'nanopay', action: `Start Nanopayment: ${selectedProject.name}`, details: '$0.001/sec USDC stream via Circle', status: 'pending' });
+    try {
+      const res = await fetch('/api/agent/nanopayment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'start-stream',
+          recipientProject: selectedProject.name,
+          amountPerSecond: 0.001,
+          durationSeconds: 30,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNanopayStream(data.stream);
+        setStreamingTick(0);
+        setStreamActive(true);
+        addLog({ type: 'nanopay', action: `Stream Active: $0.001/sec`, details: `${selectedProject.name} — TX: ${data.stream.txHash.slice(0, 16)}...`, status: 'success' });
+      } else {
+        addLog({ type: 'nanopay', action: 'Stream Failed', details: data.error, status: 'error' });
+      }
+    } catch (err: any) {
+      addLog({ type: 'nanopay', action: 'Stream Error', details: err.message, status: 'error' });
+    }
+    setLoadingNanopay(false);
+  };
+
+  const stopNanopayStream = async () => {
+    if (!nanopayStream) return;
+    setStreamActive(false);
+    addLog({ type: 'nanopay', action: 'Stop Stream', details: `${nanopayStream.recipientProject} — Stopping after ${streamingTick}s`, status: 'pending' });
+    try {
+      const res = await fetch('/api/agent/nanopayment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop-stream', streamId: nanopayStream.streamId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        addLog({ type: 'nanopay', action: 'Stream Stopped', details: data.message, status: 'success' });
+      }
+    } catch (err: any) {
+      addLog({ type: 'nanopay', action: 'Stop Error', details: err.message, status: 'error' });
+    }
   };
 
   // ================= RENDER =================
@@ -601,6 +680,105 @@ export function AutonomousAgentDashboard() {
         )}
       </GlassCard>
 
+      {/* ===== 4) NANOPAYMENT STREAMING ===== */}
+      <GlassCard className="border-purple-500/20">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-purple-400" />
+            <h3 className="text-lg font-semibold text-white">Nanopayment Streaming</h3>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">$0.000001 min</span>
+          </div>
+          {streamActive && (
+            <div className="flex items-center gap-1.5">
+              <div className="h-2 w-2 rounded-full bg-purple-400 animate-pulse" />
+              <span className="text-xs text-purple-400">LIVE</span>
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-slate-400 mb-4">Sub-cent USDC micro-payments at machine speed via Circle Agent Wallet on Arc Network. Gas-free, instant settlement.</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Controls */}
+          <div className="space-y-3">
+            <div className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
+              <p className="text-xs text-slate-500 mb-1">Recipient</p>
+              <p className="text-sm text-white font-medium">{selectedProject.name}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
+                <p className="text-xs text-slate-500 mb-1">Rate</p>
+                <p className="text-sm text-cyan-400 font-mono">$0.001/sec</p>
+              </div>
+              <div className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
+                <p className="text-xs text-slate-500 mb-1">Duration</p>
+                <p className="text-sm text-white font-mono">30 seconds</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {!streamActive ? (
+                <button
+                  onClick={startNanopayStream}
+                  disabled={loadingNanopay}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-all disabled:opacity-50"
+                >
+                  {loadingNanopay ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  Start Stream
+                </button>
+              ) : (
+                <button
+                  onClick={stopNanopayStream}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-all"
+                >
+                  <Pause className="h-4 w-4" />
+                  Stop Stream
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Live Stream Visualization */}
+          <div className="rounded-lg bg-slate-800/30 border border-slate-700/50 p-4">
+            {nanopayStream && (streamActive || streamingTick > 0) ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Stream Progress</span>
+                  <span className="text-xs text-purple-400">{streamingTick}/{nanopayStream.durationSeconds}s</span>
+                </div>
+                {/* Progress bar */}
+                <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full transition-all duration-1000"
+                    style={{ width: `${(streamingTick / nanopayStream.durationSeconds) * 100}%` }}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-slate-500">Streamed</p>
+                    <p className="text-lg font-mono text-emerald-400">${(nanopayStream.amountPerSecond * streamingTick).toFixed(6)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Rate</p>
+                    <p className="text-lg font-mono text-cyan-400">${nanopayStream.amountPerSecond}/s</p>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-500">TX: <span className="text-cyan-400 font-mono">{nanopayStream.txHash.slice(0, 24)}...</span></p>
+                  <p className="text-xs text-slate-500">Network: <span className="text-white">{nanopayStream.network}</span></p>
+                  <p className="text-xs text-slate-500">Status: <span className={streamActive ? 'text-purple-400' : 'text-emerald-400'}>{streamActive ? 'Streaming' : 'Completed'}</span></p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full py-4 text-center">
+                <Zap className="h-8 w-8 text-slate-600 mb-2" />
+                <p className="text-xs text-slate-500">Click &quot;Start Stream&quot; to begin<br />real-time USDC nanopayment</p>
+                <p className="text-xs text-slate-600 mt-2">Min: $0.000001 · Max: 1000 tx/sec</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </GlassCard>
+
       {/* ===== CIRCLE TOOLING + AGENT HUB LINK ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <GlassCard className="border-cyan-500/20">
@@ -612,6 +790,7 @@ export function AutonomousAgentDashboard() {
             {[
               { name: 'Agent Wallets', desc: 'Programmable USDC custody via Circle', where: '/agent-hub', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
               { name: 'Milestone Escrow', desc: 'AI-verified milestone release', where: '#escrow', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+              { name: 'Nanopayments', desc: 'Sub-cent streaming USDC micro-payments', where: '#nanopay', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
               { name: 'Paymaster', desc: 'Gas-free USDC (Arc Testnet native)', where: '#', status: 'native', color: 'text-cyan-400', dot: 'bg-cyan-400' },
               { name: 'CCTP / Gateway', desc: 'Cross-chain settlement ready', where: '#', status: 'ready', color: 'text-cyan-400', dot: 'bg-cyan-400' },
             ].map((t) => (
@@ -646,8 +825,8 @@ export function AutonomousAgentDashboard() {
               <p className="text-xs text-slate-500 text-center py-6">Run an analysis to see agent decisions here</p>
             ) : (
               decisionLog.map((d) => {
-                const typeIcons: Record<string, typeof Brain> = { signal: BarChart3, rebalance: Target, escrow: DollarSign, risk: Shield };
-                const typeColors: Record<string, string> = { signal: 'text-cyan-400', rebalance: 'text-violet-400', escrow: 'text-amber-400', risk: 'text-red-400' };
+                const typeIcons: Record<string, typeof Brain> = { signal: BarChart3, rebalance: Target, escrow: DollarSign, risk: Shield, nanopay: Zap };
+                const typeColors: Record<string, string> = { signal: 'text-cyan-400', rebalance: 'text-violet-400', escrow: 'text-amber-400', risk: 'text-red-400', nanopay: 'text-purple-400' };
                 const Icon = typeIcons[d.type] || Activity;
                 return (
                   <div key={d.id} className="flex items-start gap-2 rounded bg-slate-800/30 p-2">

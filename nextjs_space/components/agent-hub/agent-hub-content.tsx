@@ -18,6 +18,12 @@ import {
   ArrowUpRight,
   CircleDollarSign,
   Cpu,
+  Mail,
+  User,
+  Smartphone,
+  Globe,
+  Key,
+  Fingerprint,
 } from 'lucide-react';
 
 interface WalletData {
@@ -375,6 +381,9 @@ export function AgentHubContent() {
         )}
       </div>
 
+      {/* ===== CIRCLE APP KIT — INTERACTIVE DEMO ===== */}
+      <AppKitDemo />
+
       {/* Architecture Diagram */}
       <div className="rounded-xl bg-gray-900/50 border border-gray-800 p-6">
         <h2 className="text-lg font-semibold text-white mb-4">ENTARC × Circle Agent Architecture</h2>
@@ -438,6 +447,221 @@ export function AgentHubContent() {
           <ArrowUpRight className="w-4 h-4 text-gray-600 group-hover:text-cyan-400 ml-auto transition-colors" />
         </a>
       </div>
+    </div>
+  );
+}
+
+// ===== APP KIT DEMO COMPONENT =====
+function AppKitDemo() {
+  const [onboardingMethod, setOnboardingMethod] = useState<'email' | 'social' | 'passkey'>('email');
+  const [demoEmail, setDemoEmail] = useState('');
+  const [demoStep, setDemoStep] = useState<'idle' | 'processing' | 'creating-wallet' | 'complete'>('idle');
+  const [demoWallet, setDemoWallet] = useState<{ address: string; method: string } | null>(null);
+
+  const runAppKitDemo = async () => {
+    if (onboardingMethod === 'email' && !demoEmail) return;
+    setDemoStep('processing');
+
+    // Simulate App Kit authentication flow
+    await new Promise(r => setTimeout(r, 1200));
+    setDemoStep('creating-wallet');
+
+    // Simulate wallet creation
+    await new Promise(r => setTimeout(r, 1500));
+
+    const walletAddr = `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+    setDemoWallet({
+      address: walletAddr,
+      method: onboardingMethod === 'email' ? `Email: ${demoEmail}` : onboardingMethod === 'social' ? 'Google OAuth' : 'Passkey (Biometric)',
+    });
+    setDemoStep('complete');
+  };
+
+  const resetDemo = () => {
+    setDemoStep('idle');
+    setDemoWallet(null);
+    setDemoEmail('');
+  };
+
+  return (
+    <div className="rounded-xl bg-gray-900/50 border border-violet-500/30 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Globe className="w-5 h-5 text-violet-400" />
+          <h2 className="text-lg font-semibold text-white">Circle App Kit</h2>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">
+            Wallet Onboarding
+          </span>
+        </div>
+        {demoStep === 'complete' && (
+          <button onClick={resetDemo} className="text-xs text-slate-400 hover:text-white transition-colors">
+            Reset Demo
+          </button>
+        )}
+      </div>
+
+      <p className="text-sm text-gray-400 mb-5">
+        Zero-friction wallet creation for users. No seed phrases, no extensions — just email, social login, or passkey. Powered by Circle&apos;s programmable wallets.
+      </p>
+
+      {demoStep === 'idle' && (
+        <div className="space-y-4">
+          {/* Method Selector */}
+          <div className="flex gap-2">
+            {[
+              { key: 'email' as const, label: 'Email', icon: Mail },
+              { key: 'social' as const, label: 'Google SSO', icon: User },
+              { key: 'passkey' as const, label: 'Passkey', icon: Fingerprint },
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setOnboardingMethod(key)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm border transition-all ${
+                  onboardingMethod === key
+                    ? 'border-violet-500/50 bg-violet-500/10 text-violet-400'
+                    : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Input based on method */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              {onboardingMethod === 'email' && (
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-500">User Email</label>
+                  <input
+                    type="email"
+                    value={demoEmail}
+                    onChange={(e) => setDemoEmail(e.target.value)}
+                    placeholder="investor@example.com"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-violet-500/50"
+                  />
+                </div>
+              )}
+              {onboardingMethod === 'social' && (
+                <div className="rounded-lg bg-gray-800 border border-gray-700 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-500/10">
+                      <User className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white">Google OAuth 2.0</p>
+                      <p className="text-xs text-gray-400">One-click wallet via Google account</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {onboardingMethod === 'passkey' && (
+                <div className="rounded-lg bg-gray-800 border border-gray-700 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-emerald-500/10">
+                      <Fingerprint className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white">WebAuthn / Passkey</p>
+                      <p className="text-xs text-gray-400">Face ID, Touch ID, or hardware key</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={runAppKitDemo}
+                disabled={onboardingMethod === 'email' && !demoEmail}
+                className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Key className="h-4 w-4" />
+                Create Wallet via App Kit
+              </button>
+            </div>
+
+            <div className="rounded-lg bg-gray-800/50 border border-gray-700 p-4">
+              <h4 className="text-xs text-gray-500 mb-3 uppercase tracking-wider">App Kit Features</h4>
+              <div className="space-y-2">
+                {[
+                  { label: 'No seed phrase needed', active: true },
+                  { label: 'Social login support', active: true },
+                  { label: 'Passkey / biometric auth', active: true },
+                  { label: 'Embedded wallet (no extension)', active: true },
+                  { label: 'Cross-platform (Web + Mobile)', active: true },
+                  { label: 'Circle programmable wallet', active: true },
+                ].map((f) => (
+                  <div key={f.label} className="flex items-center gap-2">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                    <span className="text-xs text-gray-300">{f.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(demoStep === 'processing' || demoStep === 'creating-wallet') && (
+        <div className="flex flex-col items-center py-8">
+          <Loader2 className="w-8 h-8 text-violet-400 animate-spin mb-4" />
+          <p className="text-white font-medium">
+            {demoStep === 'processing' ? 'Authenticating via App Kit...' : 'Creating Circle Programmable Wallet...'}
+          </p>
+          <p className="text-gray-400 text-sm mt-1">
+            {demoStep === 'processing'
+              ? `Method: ${onboardingMethod === 'email' ? demoEmail : onboardingMethod === 'social' ? 'Google OAuth' : 'Passkey'}`
+              : 'Provisioning wallet on Arc Testnet'}
+          </p>
+          <div className="flex gap-3 mt-4">
+            {['Authenticate', 'Create Wallet', 'Fund USDC'].map((step, i) => (
+              <div key={step} className="flex items-center gap-1.5">
+                <div className={`h-2 w-2 rounded-full ${
+                  (demoStep === 'processing' && i === 0) || (demoStep === 'creating-wallet' && i === 1)
+                    ? 'bg-violet-400 animate-pulse'
+                    : i < (demoStep === 'creating-wallet' ? 1 : 0)
+                    ? 'bg-emerald-400'
+                    : 'bg-gray-600'
+                }`} />
+                <span className="text-xs text-gray-400">{step}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {demoStep === 'complete' && demoWallet && (
+        <div className="space-y-4">
+          <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/30 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <span className="text-emerald-400 font-medium">Wallet Created via App Kit</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Wallet Address</p>
+                <code className="text-cyan-400 text-xs font-mono break-all">{demoWallet.address}</code>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Auth Method</p>
+                <p className="text-white text-sm">{demoWallet.method}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Network</p>
+                <p className="text-white text-sm">Arc Testnet</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Wallet Type</p>
+                <p className="text-white text-sm">Circle Programmable Wallet</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-lg bg-gray-800/30 border border-gray-700 p-3">
+            <p className="text-xs text-gray-400">
+              <span className="text-violet-400 font-medium">App Kit Flow:</span> User authenticates ({demoWallet.method}) → Circle creates embedded wallet → Wallet funded with USDC on Arc → User can invest without MetaMask or seed phrases
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
