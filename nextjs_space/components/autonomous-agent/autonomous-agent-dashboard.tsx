@@ -26,26 +26,18 @@ import {
   Layers,
   Fuel,
   Coins,
+  Play,
+  Loader2,
+  Search,
+  ArrowRight,
+  Pause,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
-// Types
-interface RiskRegime {
-  regime: 'risk-on' | 'risk-off' | 'neutral';
-  confidence: number;
-  reasoning: string;
-}
-
-interface RebalanceAction {
-  projectId: string;
-  projectName: string;
-  action: 'increase' | 'decrease' | 'hold' | 'exit';
-  currentAllocation: number;
-  targetAllocation: number;
-  reason: string;
-}
-
-interface SignalSource {
+// ================= TYPES =================
+interface SignalResult {
   source: string;
   type: string;
   weight: number;
@@ -54,400 +46,222 @@ interface SignalSource {
   dataPoints: Array<{ label: string; value: number | string }>;
 }
 
-interface EscrowRecord {
-  id: string;
+interface SignalAnalysis {
   projectName: string;
-  totalAmount: number;
-  releasedAmount: number;
-  status: 'active' | 'completed' | 'paused';
-  milestones: Array<{
-    title: string;
-    amount: number;
-    status: 'pending' | 'released' | 'verified';
-  }>;
+  compositeScore: number;
+  overallTrend: string;
+  recommendation: string;
+  action: string;
+  signals: SignalResult[];
+  signalStrength: { strong: number; moderate: number; weak: number };
+  timestamp: string;
 }
 
-interface AgentDecision {
+interface PortfolioAnalysis {
+  riskRegime: { regime: string; confidence: number; reasoning: string };
+  rebalancingPlan: {
+    actions: Array<{
+      projectId: string;
+      projectName: string;
+      action: string;
+      currentAllocation: number;
+      suggestedAllocation: number;
+      reason: string;
+      urgency: string;
+    }>;
+    totalReallocation: number;
+  };
+  riskMetrics: {
+    diversificationScore: number;
+    concentrationRisk: string;
+    portfolioHealthScore: number;
+    activeMilestones: number;
+    totalProjects: number;
+  };
+  timestamp: string;
+}
+
+interface EscrowResult {
+  escrow?: any;
+  release?: any;
+  pause?: any;
+  status?: any;
+  message: string;
+  circleIntegration?: any;
+}
+
+interface DecisionLogEntry {
   id: string;
   timestamp: string;
-  type: 'rebalance' | 'signal' | 'escrow' | 'risk';
+  type: 'signal' | 'rebalance' | 'escrow' | 'risk';
   action: string;
   details: string;
-  status: 'executed' | 'pending' | 'rejected';
+  status: 'success' | 'pending' | 'error';
 }
 
-// Demo data generators
-function generateDemoRiskRegime(): RiskRegime {
-  const regimes: RiskRegime[] = [
-    { regime: 'risk-on', confidence: 78, reasoning: 'High GitHub activity across portfolio projects. Social sentiment positive. 3/5 milestones on track. Market conditions favorable for Pre-TGE investments.' },
-    { regime: 'neutral', confidence: 62, reasoning: 'Mixed signals detected. GitHub activity declining in 2 projects while social momentum increasing. Recommend holding current positions.' },
-    { regime: 'risk-off', confidence: 85, reasoning: 'Multiple milestone delays detected. Community engagement dropping. On-chain activity below threshold. Recommend reducing exposure.' },
-  ];
-  return regimes[0];
-}
+// Sample projects for demo
+const DEMO_PROJECTS = [
+  {
+    id: 'arcswap', name: 'ArcSwap Protocol', category: 'DeFi', allocation: 25, trustScore: 87,
+    github: { commits30d: 45, contributors: 12, stars: 340 },
+    social: { mentions: 850, sentiment: 72, influencerReach: 25000 },
+    community: { discordMembers: 5200, activeUsers: 780, engagementRate: 15 },
+    milestones: { total: 5, completed: 3, onTimeDelivery: 80 },
+    onchain: { transactions: 1200, uniqueUsers: 450, tvl: 180000 },
+    signals: { githubActivity: 85, socialMomentum: 72, milestoneProgress: 60, communityGrowth: 75 },
+  },
+  {
+    id: 'neurabridge', name: 'NeuraBridge', category: 'Infrastructure', allocation: 20, trustScore: 92,
+    github: { commits30d: 78, contributors: 18, stars: 520 },
+    social: { mentions: 1200, sentiment: 85, influencerReach: 40000 },
+    community: { discordMembers: 8500, activeUsers: 1200, engagementRate: 14 },
+    milestones: { total: 6, completed: 4, onTimeDelivery: 90 },
+    onchain: { transactions: 2300, uniqueUsers: 890, tvl: 350000 },
+    signals: { githubActivity: 92, socialMomentum: 85, milestoneProgress: 67, communityGrowth: 80 },
+  },
+  {
+    id: 'metarealm', name: 'MetaRealm', category: 'Gaming', allocation: 15, trustScore: 71,
+    github: { commits30d: 12, contributors: 5, stars: 120 },
+    social: { mentions: 400, sentiment: 45, influencerReach: 8000 },
+    community: { discordMembers: 2100, activeUsers: 280, engagementRate: 8 },
+    milestones: { total: 4, completed: 1, onTimeDelivery: 50 },
+    onchain: { transactions: 150, uniqueUsers: 60, tvl: 15000 },
+    signals: { githubActivity: 35, socialMomentum: 45, milestoneProgress: 25, communityGrowth: 40 },
+  },
+  {
+    id: 'privacyshield', name: 'PrivacyShield', category: 'Privacy', allocation: 20, trustScore: 84,
+    github: { commits30d: 55, contributors: 9, stars: 280 },
+    social: { mentions: 600, sentiment: 68, influencerReach: 18000 },
+    community: { discordMembers: 4100, activeUsers: 620, engagementRate: 12 },
+    milestones: { total: 5, completed: 3, onTimeDelivery: 85 },
+    onchain: { transactions: 800, uniqueUsers: 320, tvl: 95000 },
+    signals: { githubActivity: 78, socialMomentum: 68, milestoneProgress: 60, communityGrowth: 65 },
+  },
+  {
+    id: 'daoforge', name: 'DAOforge', category: 'DAO', allocation: 20, trustScore: 78,
+    github: { commits30d: 8, contributors: 3, stars: 90 },
+    social: { mentions: 200, sentiment: 30, influencerReach: 3000 },
+    community: { discordMembers: 1100, activeUsers: 120, engagementRate: 5 },
+    milestones: { total: 4, completed: 0, onTimeDelivery: 0 },
+    onchain: { transactions: 50, uniqueUsers: 20, tvl: 5000 },
+    signals: { githubActivity: 20, socialMomentum: 30, milestoneProgress: 0, communityGrowth: 25 },
+  },
+];
 
-function generateDemoRebalanceActions(): RebalanceAction[] {
-  return [
-    { projectId: '1', projectName: 'ArcSwap DEX', action: 'increase', currentAllocation: 25, targetAllocation: 32, reason: 'Strong GitHub commits (+45%), milestone 2 verified, growing TVL signals' },
-    { projectId: '2', projectName: 'ArcLend Protocol', action: 'hold', currentAllocation: 20, targetAllocation: 20, reason: 'Stable development activity, community engagement on track' },
-    { projectId: '3', projectName: 'ArcBridge', action: 'decrease', currentAllocation: 30, targetAllocation: 22, reason: 'Milestone 3 delayed by 2 weeks, core dev departure detected' },
-    { projectId: '4', projectName: 'StableVault', action: 'increase', currentAllocation: 15, targetAllocation: 18, reason: 'New partnerships announced, audit completed successfully' },
-    { projectId: '5', projectName: 'ArcNFT Market', action: 'exit', currentAllocation: 10, targetAllocation: 0, reason: 'Team restructuring, missed 3 consecutive milestones' },
-  ];
-}
-
-function generateDemoSignals(): SignalSource[] {
-  return [
-    { source: 'GitHub Activity', type: 'github', weight: 0.30, score: 82, trend: 'up', dataPoints: [{ label: 'Commits (30d)', value: 347 }, { label: 'Contributors', value: 28 }, { label: 'PRs Merged', value: 45 }] },
-    { source: 'Social Momentum', type: 'social', weight: 0.20, score: 71, trend: 'up', dataPoints: [{ label: 'Mentions', value: '1.2K' }, { label: 'Sentiment', value: '+67%' }, { label: 'Influencer Reach', value: '45K' }] },
-    { source: 'Community Growth', type: 'community', weight: 0.20, score: 65, trend: 'stable', dataPoints: [{ label: 'Discord Members', value: '8.5K' }, { label: 'Active Users', value: '1.2K' }, { label: 'Engagement Rate', value: '14%' }] },
-    { source: 'On-Chain Signals', type: 'onchain', weight: 0.15, score: 58, trend: 'down', dataPoints: [{ label: 'Testnet TXs', value: '23K' }, { label: 'Unique Wallets', value: '4.1K' }, { label: 'Contract Calls', value: '8.7K' }] },
-    { source: 'Milestone Tracking', type: 'milestone', weight: 0.15, score: 74, trend: 'up', dataPoints: [{ label: 'On Track', value: '7/10' }, { label: 'Completed', value: 5 }, { label: 'Avg Delay', value: '3 days' }] },
-  ];
-}
-
-function generateDemoEscrows(): EscrowRecord[] {
-  return [
-    {
-      id: 'esc-001', projectName: 'ArcSwap DEX', totalAmount: 50000, releasedAmount: 30000, status: 'active',
-      milestones: [
-        { title: 'Smart Contract Audit', amount: 15000, status: 'released' },
-        { title: 'Testnet Launch', amount: 15000, status: 'released' },
-        { title: 'Mainnet Beta', amount: 10000, status: 'verified' },
-        { title: 'Full Launch', amount: 10000, status: 'pending' },
-      ],
-    },
-    {
-      id: 'esc-002', projectName: 'ArcBridge', totalAmount: 35000, releasedAmount: 10000, status: 'paused',
-      milestones: [
-        { title: 'Architecture Design', amount: 10000, status: 'released' },
-        { title: 'Bridge Contracts', amount: 12500, status: 'pending' },
-        { title: 'Security Audit', amount: 12500, status: 'pending' },
-      ],
-    },
-  ];
-}
-
-function generateDemoDecisions(): AgentDecision[] {
-  return [
-    { id: 'd1', timestamp: '2 min ago', type: 'signal', action: 'Signal Update', details: 'ArcSwap GitHub activity spike detected: 23 commits in 24h from 5 contributors', status: 'executed' },
-    { id: 'd2', timestamp: '15 min ago', type: 'rebalance', action: 'Portfolio Rebalance', details: 'Increased ArcSwap allocation 25% → 32% based on multi-signal analysis', status: 'executed' },
-    { id: 'd3', timestamp: '1 hour ago', type: 'escrow', action: 'Milestone Verified', details: 'ArcSwap Mainnet Beta milestone verified via on-chain deployment check', status: 'executed' },
-    { id: 'd4', timestamp: '2 hours ago', type: 'risk', action: 'Risk Alert', details: 'ArcBridge funding paused — core developer departure detected via GitHub signal', status: 'executed' },
-    { id: 'd5', timestamp: '4 hours ago', type: 'rebalance', action: 'Exit Recommendation', details: 'ArcNFT Market flagged for exit: 3 consecutive missed milestones', status: 'pending' },
-  ];
-}
-
-// Sub-components
-function RiskRegimePanel({ regime }: { regime: RiskRegime }) {
-  const config = {
-    'risk-on': { icon: TrendingUp, label: 'RISK-ON', bg: 'from-emerald-500/10 to-green-500/5', border: 'border-emerald-500/30', textColor: 'text-emerald-400', bgIcon: 'bg-emerald-500/20', barColor: 'bg-emerald-500' },
-    'risk-off': { icon: TrendingDown, label: 'RISK-OFF', bg: 'from-red-500/10 to-orange-500/5', border: 'border-red-500/30', textColor: 'text-red-400', bgIcon: 'bg-red-500/20', barColor: 'bg-red-500' },
-    'neutral': { icon: Minus, label: 'NEUTRAL', bg: 'from-yellow-500/10 to-amber-500/5', border: 'border-yellow-500/30', textColor: 'text-yellow-400', bgIcon: 'bg-yellow-500/20', barColor: 'bg-yellow-500' },
-  };
-  const c = config[regime.regime];
-  const Icon = c.icon;
-
-  return (
-    <GlassCard className={cn('bg-gradient-to-br', c.bg, c.border)}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl', c.bgIcon)}>
-            <Icon className={cn('h-6 w-6', c.textColor)} />
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 uppercase tracking-wider">Risk Regime</p>
-            <h3 className={cn('text-xl font-bold', c.textColor)}>{c.label}</h3>
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-slate-400">Confidence</p>
-          <p className={cn('text-2xl font-bold', c.textColor)}>{regime.confidence}%</p>
-        </div>
-      </div>
-      <div className="w-full bg-slate-800/50 rounded-full h-2 mb-3">
-        <div className={cn('h-2 rounded-full', c.barColor)} style={{ width: `${regime.confidence}%` }} />
-      </div>
-      <p className="text-sm text-slate-300 leading-relaxed">{regime.reasoning}</p>
-    </GlassCard>
-  );
-}
-
-function SignalPanel({ signals }: { signals: SignalSource[] }) {
-  const trendIcon = (t: string) => {
-    if (t === 'up') return <TrendingUp className="h-4 w-4 text-emerald-400" />;
-    if (t === 'down') return <TrendingDown className="h-4 w-4 text-red-400" />;
-    return <Minus className="h-4 w-4 text-yellow-400" />;
-  };
-
-  const typeIcon = (t: string) => {
-    const icons: Record<string, typeof Brain> = { github: GitBranch, social: Globe, community: Users, onchain: Activity, milestone: Target };
-    const I = icons[t] || Activity;
-    return <I className="h-4 w-4" />;
-  };
-
-  const compositeScore = Math.round(signals.reduce((acc, s) => acc + s.score * s.weight, 0));
-
-  return (
-    <GlassCard>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-cyan-400" />
-          <h3 className="text-lg font-semibold text-white">Signal Aggregation</h3>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">RFB 06</span>
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-slate-400">Composite</p>
-          <p className="text-xl font-bold text-cyan-400">{compositeScore}/100</p>
-        </div>
-      </div>
-      <div className="space-y-3">
-        {signals.map((signal) => (
-          <div key={signal.source} className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-cyan-400">{typeIcon(signal.type)}</span>
-                <span className="text-sm font-medium text-white">{signal.source}</span>
-                <span className="text-xs text-slate-500">w:{(signal.weight * 100).toFixed(0)}%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {trendIcon(signal.trend)}
-                <span className={cn('text-sm font-bold',
-                  signal.score >= 70 ? 'text-emerald-400' : signal.score >= 50 ? 'text-yellow-400' : 'text-red-400'
-                )}>{signal.score}</span>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              {signal.dataPoints.map((dp) => (
-                <div key={dp.label} className="text-xs">
-                  <span className="text-slate-500">{dp.label}: </span>
-                  <span className="text-slate-300 font-medium">{dp.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </GlassCard>
-  );
-}
-
-function RebalancePanel({ actions }: { actions: RebalanceAction[] }) {
-  const actionConfig: Record<string, { textColor: string; bgColor: string; icon: typeof TrendingUp }> = {
-    increase: { textColor: 'text-emerald-400', bgColor: 'bg-emerald-500/10', icon: TrendingUp },
-    decrease: { textColor: 'text-orange-400', bgColor: 'bg-orange-500/10', icon: TrendingDown },
-    hold: { textColor: 'text-blue-400', bgColor: 'bg-blue-500/10', icon: Minus },
-    exit: { textColor: 'text-red-400', bgColor: 'bg-red-500/10', icon: AlertTriangle },
-  };
-
-  return (
-    <GlassCard>
-      <div className="flex items-center gap-2 mb-4">
-        <Target className="h-5 w-5 text-violet-400" />
-        <h3 className="text-lg font-semibold text-white">Rebalancing Plan</h3>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">RFB 04</span>
-      </div>
-      <div className="space-y-2">
-        {actions.map((a) => {
-          const conf = actionConfig[a.action];
-          const Icon = conf.icon;
-          return (
-            <div key={a.projectId} className="flex items-center gap-3 rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
-              <Icon className={cn('h-4 w-4 flex-shrink-0', conf.textColor)} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-white truncate">{a.projectName}</span>
-                  <span className={cn('text-xs px-1.5 py-0.5 rounded uppercase font-bold', conf.textColor, conf.bgColor)}>{a.action}</span>
-                </div>
-                <p className="text-xs text-slate-400 mt-0.5 truncate">{a.reason}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <div className="flex items-center gap-1 text-xs">
-                  <span className="text-slate-500">{a.currentAllocation}%</span>
-                  <ChevronRight className="h-3 w-3 text-slate-600" />
-                  <span className={cn('font-bold', conf.textColor)}>{a.targetAllocation}%</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </GlassCard>
-  );
-}
-
-function EscrowPanel({ escrows }: { escrows: EscrowRecord[] }) {
-  return (
-    <GlassCard>
-      <div className="flex items-center gap-2 mb-4">
-        <Lock className="h-5 w-5 text-amber-400" />
-        <h3 className="text-lg font-semibold text-white">Circle Escrow</h3>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">USDC</span>
-      </div>
-      <div className="space-y-3">
-        {escrows.map((e) => (
-          <div key={e.id} className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-white">{e.projectName}</span>
-                <span className={cn('text-xs px-1.5 py-0.5 rounded-full border',
-                  e.status === 'active' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' :
-                  e.status === 'paused' ? 'text-orange-400 bg-orange-500/10 border-orange-500/30' :
-                  'text-blue-400 bg-blue-500/10 border-blue-500/30'
-                )}>{e.status}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-sm font-bold text-white">${e.releasedAmount.toLocaleString()}</span>
-                <span className="text-xs text-slate-500"> / ${e.totalAmount.toLocaleString()}</span>
-              </div>
-            </div>
-            <div className="w-full bg-slate-700/50 rounded-full h-1.5 mb-3">
-              <div className="h-1.5 rounded-full bg-amber-500" style={{ width: `${(e.releasedAmount / e.totalAmount) * 100}%` }} />
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {e.milestones.map((m, i) => (
-                <div key={i} className={cn('text-xs px-2 py-1 rounded-md border flex items-center gap-1',
-                  m.status === 'released' ? 'text-emerald-400 bg-emerald-500/5 border-emerald-500/20' :
-                  m.status === 'verified' ? 'text-cyan-400 bg-cyan-500/5 border-cyan-500/20' :
-                  'text-slate-400 bg-slate-800/50 border-slate-700'
-                )}>
-                  {m.status === 'released' ? <Unlock className="h-3 w-3" /> : m.status === 'verified' ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                  {m.title}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </GlassCard>
-  );
-}
-
-function DecisionLog({ decisions }: { decisions: AgentDecision[] }) {
-  const typeConfig: Record<string, { textColor: string; icon: typeof Brain }> = {
-    rebalance: { textColor: 'text-violet-400', icon: Target },
-    signal: { textColor: 'text-cyan-400', icon: BarChart3 },
-    escrow: { textColor: 'text-amber-400', icon: DollarSign },
-    risk: { textColor: 'text-red-400', icon: Shield },
-  };
-
-  return (
-    <GlassCard>
-      <div className="flex items-center gap-2 mb-4">
-        <Activity className="h-5 w-5 text-cyan-400" />
-        <h3 className="text-lg font-semibold text-white">Agent Decision Log</h3>
-      </div>
-      <div className="space-y-2">
-        {decisions.map((d) => {
-          const conf = typeConfig[d.type] || typeConfig.signal;
-          const Icon = conf.icon;
-          return (
-            <div key={d.id} className="flex items-start gap-3 rounded-lg bg-slate-800/30 p-3">
-              <Icon className={cn('h-4 w-4 mt-0.5 flex-shrink-0', conf.textColor)} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-white">{d.action}</span>
-                  <span className={cn('text-xs px-1.5 py-0.5 rounded',
-                    d.status === 'executed' ? 'text-emerald-400 bg-emerald-500/10' :
-                    d.status === 'pending' ? 'text-yellow-400 bg-yellow-500/10' :
-                    'text-red-400 bg-red-500/10'
-                  )}>{d.status}</span>
-                </div>
-                <p className="text-xs text-slate-400 mt-0.5">{d.details}</p>
-              </div>
-              <span className="text-xs text-slate-500 flex-shrink-0">{d.timestamp}</span>
-            </div>
-          );
-        })}  
-      </div>
-    </GlassCard>
-  );
-}
-
-function CircleToolingPanel() {
-  const tools = [
-    { name: 'Agent Wallets', desc: 'Programmable USDC custody', icon: Coins, status: 'live', textColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
-    { name: 'Milestone Escrow', desc: 'Smart contract-based release', icon: Lock, status: 'live', textColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
-    { name: 'Paymaster', desc: 'Gas-free USDC transactions', icon: Fuel, status: 'integrated', textColor: 'text-cyan-400', dotColor: 'bg-cyan-400' },
-    { name: 'CCTP / Gateway', desc: 'Cross-chain USDC settlement', icon: Layers, status: 'integrated', textColor: 'text-cyan-400', dotColor: 'bg-cyan-400' },
-  ];
-
-  return (
-    <GlassCard className="border-cyan-500/20">
-      <div className="flex items-center gap-2 mb-4">
-        <Shield className="h-5 w-5 text-cyan-400" />
-        <h3 className="text-lg font-semibold text-white">Circle Tooling Stack</h3>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">20% Score</span>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {tools.map((t) => {
-          const Icon = t.icon;
-          return (
-            <div key={t.name} className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className={cn('h-4 w-4', t.textColor)} />
-                <span className="text-sm font-medium text-white">{t.name}</span>
-              </div>
-              <p className="text-xs text-slate-400">{t.desc}</p>
-              <div className="flex items-center gap-1 mt-2">
-                <div className={cn('h-1.5 w-1.5 rounded-full', t.dotColor)} />
-                <span className={cn('text-xs', t.textColor)}>{t.status}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </GlassCard>
-  );
-}
-
-// Main Dashboard Component
+// ================= MAIN COMPONENT =================
 export function AutonomousAgentDashboard() {
-  const [riskRegime, setRiskRegime] = useState<RiskRegime | null>(null);
-  const [rebalanceActions, setRebalanceActions] = useState<RebalanceAction[]>([]);
-  const [signals, setSignals] = useState<SignalSource[]>([]);
-  const [escrows, setEscrows] = useState<EscrowRecord[]>([]);
-  const [decisions, setDecisions] = useState<AgentDecision[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState('');
+  const [selectedProject, setSelectedProject] = useState(DEMO_PROJECTS[0]);
+  const [signalAnalysis, setSignalAnalysis] = useState<SignalAnalysis | null>(null);
+  const [portfolioAnalysis, setPortfolioAnalysis] = useState<PortfolioAnalysis | null>(null);
+  const [escrowResult, setEscrowResult] = useState<EscrowResult | null>(null);
+  const [decisionLog, setDecisionLog] = useState<DecisionLogEntry[]>([]);
+  const [loadingSignal, setLoadingSignal] = useState(false);
+  const [loadingPortfolio, setLoadingPortfolio] = useState(false);
+  const [loadingEscrow, setLoadingEscrow] = useState(false);
+  const [escrowAction, setEscrowAction] = useState<'create' | 'release' | 'check' | 'pause'>('create');
 
-  const loadData = useCallback(() => {
-    setIsLoading(true);
-    // Simulate AI agent processing
-    setTimeout(() => {
-      setRiskRegime(generateDemoRiskRegime());
-      setRebalanceActions(generateDemoRebalanceActions());
-      setSignals(generateDemoSignals());
-      setEscrows(generateDemoEscrows());
-      setDecisions(generateDemoDecisions());
-      setLastRefresh('Just now');
-      setIsLoading(false);
-    }, 800);
+  const addLog = useCallback((entry: Omit<DecisionLogEntry, 'id' | 'timestamp'>) => {
+    setDecisionLog(prev => [{
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toLocaleTimeString('tr-TR'),
+      ...entry,
+    }, ...prev].slice(0, 20));
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // ===== 1) SIGNAL ANALYSIS =====
+  const runSignalAnalysis = async () => {
+    setLoadingSignal(true);
+    addLog({ type: 'signal', action: `Signal Analysis: ${selectedProject.name}`, details: 'Analyzing 5 signal sources...', status: 'pending' });
+    try {
+      const res = await fetch('/api/agent/signal-aggregator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project: { ...selectedProject } }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSignalAnalysis(data.analysis);
+        addLog({ type: 'signal', action: `Signal Result: ${data.analysis.action.toUpperCase()}`, details: `${selectedProject.name} — Composite: ${data.analysis.compositeScore}/100, Trend: ${data.analysis.overallTrend}`, status: 'success' });
+      } else {
+        addLog({ type: 'signal', action: 'Signal Analysis Failed', details: data.error, status: 'error' });
+      }
+    } catch (err: any) {
+      addLog({ type: 'signal', action: 'Signal Analysis Error', details: err.message, status: 'error' });
+    }
+    setLoadingSignal(false);
+  };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 p-6">
-        <div className="flex items-center gap-3">
-          <Brain className="w-7 h-7 text-cyan-400 animate-pulse" />
-          <div>
-            <h1 className="text-2xl font-bold text-white">Autonomous Agent</h1>
-            <p className="text-slate-400">AI agent analyzing portfolio signals...</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-48 rounded-xl bg-slate-800/30 animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // ===== 2) PORTFOLIO ANALYSIS =====
+  const runPortfolioAnalysis = async () => {
+    setLoadingPortfolio(true);
+    addLog({ type: 'rebalance', action: 'Portfolio Analysis', details: `Analyzing ${DEMO_PROJECTS.length} projects for risk regime...`, status: 'pending' });
+    try {
+      const res = await fetch('/api/agent/portfolio-manager', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projects: DEMO_PROJECTS }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPortfolioAnalysis(data.analysis);
+        addLog({ type: 'risk', action: `Risk Regime: ${data.analysis.riskRegime.regime.toUpperCase()}`, details: `Confidence: ${data.analysis.riskRegime.confidence}% — Health Score: ${data.analysis.riskMetrics.portfolioHealthScore}`, status: 'success' });
+      } else {
+        addLog({ type: 'rebalance', action: 'Portfolio Analysis Failed', details: data.error, status: 'error' });
+      }
+    } catch (err: any) {
+      addLog({ type: 'rebalance', action: 'Portfolio Analysis Error', details: err.message, status: 'error' });
+    }
+    setLoadingPortfolio(false);
+  };
 
+  // ===== 3) ESCROW OPERATIONS =====
+  const runEscrowOperation = async () => {
+    setLoadingEscrow(true);
+    const actionLabels: Record<string, string> = {
+      'create': 'Create Escrow', 'release': 'Release Milestone',
+      'check': 'Check Status', 'pause': 'Pause Funding',
+    };
+    addLog({ type: 'escrow', action: actionLabels[escrowAction], details: `${selectedProject.name} — via Circle Agent Wallet`, status: 'pending' });
+    try {
+      const bodyMap: Record<string, any> = {
+        create: {
+          action: 'create-escrow',
+          projectId: selectedProject.id,
+          projectName: selectedProject.name,
+          totalAmount: 50000,
+          milestones: [
+            { id: 'm1', title: 'Smart Contract Audit', amount: 15000, percentage: 30 },
+            { id: 'm2', title: 'Testnet Launch', amount: 15000, percentage: 30 },
+            { id: 'm3', title: 'Mainnet Beta', amount: 10000, percentage: 20 },
+            { id: 'm4', title: 'Full Launch', amount: 10000, percentage: 20 },
+          ],
+          investorWallet: '0x72f5adfabc8670bc873963018133d0b1729a92fd',
+          agentWalletId: 'entarc-agent-wallet-001',
+        },
+        release: { action: 'release-milestone', escrowId: `esc-${selectedProject.id}`, milestoneId: 'm1', projectName: selectedProject.name },
+        check: { action: 'check-status', escrowId: `esc-${selectedProject.id}` },
+        pause: { action: 'pause-funding', escrowId: `esc-${selectedProject.id}`, reason: 'AI agent detected declining GitHub activity and missed milestone' },
+      };
+
+      const res = await fetch('/api/agent/escrow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyMap[escrowAction]),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEscrowResult(data);
+        addLog({ type: 'escrow', action: `${actionLabels[escrowAction]} — Success`, details: data.message, status: 'success' });
+      } else {
+        addLog({ type: 'escrow', action: 'Escrow Operation Failed', details: data.error, status: 'error' });
+      }
+    } catch (err: any) {
+      addLog({ type: 'escrow', action: 'Escrow Error', details: err.message, status: 'error' });
+    }
+    setLoadingEscrow(false);
+  };
+
+  // ================= RENDER =================
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -457,51 +271,419 @@ export function AutonomousAgentDashboard() {
             <Brain className="w-7 h-7 text-cyan-400" />
             Autonomous Agent
           </h1>
-          <p className="text-slate-400 mt-1">
-            AI-driven portfolio management & social signal intelligence on Arc Network
-          </p>
+          <p className="text-slate-400 mt-1">AI-driven portfolio management & social signal intelligence on Arc Network</p>
           <div className="flex gap-2 mt-2">
             <span className="text-xs px-2 py-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">RFB 04 — Adaptive Portfolio</span>
             <span className="text-xs px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">RFB 06 — Signal Intelligence</span>
           </div>
         </div>
-        <button
-          onClick={loadData}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-colors text-sm"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </button>
       </div>
 
-      {/* Risk Regime + Circle Tooling */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {riskRegime && <RiskRegimePanel regime={riskRegime} />}
-        <CircleToolingPanel />
-      </div>
-
-      {/* Signal Aggregation */}
-      <SignalPanel signals={signals} />
-
-      {/* Rebalance + Escrow */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <RebalancePanel actions={rebalanceActions} />
-        <EscrowPanel escrows={escrows} />
-      </div>
-
-      {/* Decision Log */}
-      <DecisionLog decisions={decisions} />
-
-      {/* Hackathon Info */}
-      <GlassCard className="border-cyan-500/10 bg-gradient-to-r from-cyan-500/5 to-violet-500/5">
-        <div className="flex items-center gap-3">
-          <Zap className="h-5 w-5 text-cyan-400" />
-          <div>
-            <h3 className="text-sm font-semibold text-white">Agora Agents Hackathon — Active</h3>
-            <p className="text-xs text-slate-400">May 11-25, 2026 • $50K Prize Pool • Settlement on Arc + USDC</p>
-          </div>
+      {/* ===== PROJECT SELECTOR ===== */}
+      <GlassCard className="border-slate-700/80">
+        <div className="flex items-center gap-2 mb-3">
+          <Search className="h-4 w-4 text-cyan-400" />
+          <h3 className="text-sm font-semibold text-white">Select Target Project</h3>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          {DEMO_PROJECTS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => { setSelectedProject(p); setSignalAnalysis(null); setEscrowResult(null); }}
+              className={cn(
+                'rounded-lg border p-3 text-left transition-all',
+                selectedProject.id === p.id
+                  ? 'border-cyan-500/50 bg-cyan-500/10'
+                  : 'border-slate-700/50 bg-slate-800/30 hover:border-slate-600'
+              )}
+            >
+              <p className="text-sm font-medium text-white truncate">{p.name}</p>
+              <p className="text-xs text-slate-400">{p.category} • Trust: {p.trustScore}</p>
+            </button>
+          ))}
         </div>
       </GlassCard>
+
+      {/* ===== 1) SIGNAL ANALYSIS ===== */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-cyan-400" />
+            <h3 className="text-lg font-semibold text-white">Signal Aggregation</h3>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">RFB 06</span>
+          </div>
+          <button
+            onClick={runSignalAnalysis}
+            disabled={loadingSignal}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-colors text-sm disabled:opacity-50"
+          >
+            {loadingSignal ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+            Analyze {selectedProject.name}
+          </button>
+        </div>
+
+        {!signalAnalysis && !loadingSignal && (
+          <div className="text-center py-8 text-slate-500">
+            <BarChart3 className="h-10 w-10 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">Select a project and click &quot;Analyze&quot; to run multi-source signal aggregation</p>
+          </div>
+        )}
+
+        {loadingSignal && (
+          <div className="text-center py-8">
+            <Loader2 className="h-8 w-8 mx-auto text-cyan-400 animate-spin mb-2" />
+            <p className="text-sm text-cyan-400">Analyzing GitHub, Social, Community, On-Chain, Milestone signals...</p>
+          </div>
+        )}
+
+        {signalAnalysis && !loadingSignal && (
+          <div>
+            {/* Composite Score + Recommendation */}
+            <div className={cn('rounded-lg p-4 mb-4 border',
+              signalAnalysis.action === 'invest' ? 'bg-emerald-500/5 border-emerald-500/30' :
+              signalAnalysis.action === 'hold' ? 'bg-blue-500/5 border-blue-500/30' :
+              signalAnalysis.action === 'monitor' ? 'bg-yellow-500/5 border-yellow-500/30' :
+              'bg-red-500/5 border-red-500/30'
+            )}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl font-bold text-white">{signalAnalysis.compositeScore}<span className="text-sm text-slate-400">/100</span></span>
+                  <div>
+                    <span className={cn('text-sm font-bold uppercase',
+                      signalAnalysis.action === 'invest' ? 'text-emerald-400' :
+                      signalAnalysis.action === 'hold' ? 'text-blue-400' :
+                      signalAnalysis.action === 'monitor' ? 'text-yellow-400' : 'text-red-400'
+                    )}>{signalAnalysis.action}</span>
+                    <span className="text-xs text-slate-400 ml-2">Trend: {signalAnalysis.overallTrend}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2 text-xs">
+                  <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400">{signalAnalysis.signalStrength.strong} strong</span>
+                  <span className="px-2 py-1 rounded bg-yellow-500/10 text-yellow-400">{signalAnalysis.signalStrength.moderate} moderate</span>
+                  <span className="px-2 py-1 rounded bg-red-500/10 text-red-400">{signalAnalysis.signalStrength.weak} weak</span>
+                </div>
+              </div>
+              <p className="text-sm text-slate-300">{signalAnalysis.recommendation}</p>
+            </div>
+
+            {/* Individual Signals */}
+            <div className="space-y-2">
+              {signalAnalysis.signals.map((s) => {
+                const icons: Record<string, typeof GitBranch> = { github: GitBranch, social: Globe, community: Users, onchain: Activity, milestone: Target };
+                const Icon = icons[s.type] || Activity;
+                return (
+                  <div key={s.source} className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-cyan-400" />
+                        <span className="text-sm font-medium text-white">{s.source}</span>
+                        <span className="text-xs text-slate-500">weight: {(s.weight * 100).toFixed(0)}%</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {s.trend === 'up' ? <TrendingUp className="h-4 w-4 text-emerald-400" /> : s.trend === 'down' ? <TrendingDown className="h-4 w-4 text-red-400" /> : <Minus className="h-4 w-4 text-yellow-400" />}
+                        <span className={cn('text-sm font-bold', s.score >= 70 ? 'text-emerald-400' : s.score >= 40 ? 'text-yellow-400' : 'text-red-400')}>{s.score}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 flex-wrap">
+                      {s.dataPoints.map((dp) => (
+                        <span key={dp.label} className="text-xs"><span className="text-slate-500">{dp.label}: </span><span className="text-slate-300">{dp.value}</span></span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </GlassCard>
+
+      {/* ===== 2) PORTFOLIO ANALYSIS ===== */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-violet-400" />
+            <h3 className="text-lg font-semibold text-white">Adaptive Portfolio Manager</h3>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">RFB 04</span>
+          </div>
+          <button
+            onClick={runPortfolioAnalysis}
+            disabled={loadingPortfolio}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-500/10 border border-violet-500/30 text-violet-400 hover:bg-violet-500/20 transition-colors text-sm disabled:opacity-50"
+          >
+            {loadingPortfolio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+            Run Portfolio Analysis
+          </button>
+        </div>
+
+        {!portfolioAnalysis && !loadingPortfolio && (
+          <div className="text-center py-8 text-slate-500">
+            <Target className="h-10 w-10 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">Click &quot;Run Portfolio Analysis&quot; to detect risk regime and generate rebalancing plan</p>
+          </div>
+        )}
+
+        {loadingPortfolio && (
+          <div className="text-center py-8">
+            <Loader2 className="h-8 w-8 mx-auto text-violet-400 animate-spin mb-2" />
+            <p className="text-sm text-violet-400">Analyzing {DEMO_PROJECTS.length} projects for risk regime detection...</p>
+          </div>
+        )}
+
+        {portfolioAnalysis && !loadingPortfolio && (
+          <div className="space-y-4">
+            {/* Risk Regime */}
+            <div className={cn('rounded-lg p-4 border',
+              portfolioAnalysis.riskRegime.regime === 'risk-on' ? 'bg-emerald-500/5 border-emerald-500/30' :
+              portfolioAnalysis.riskRegime.regime === 'risk-off' ? 'bg-red-500/5 border-red-500/30' :
+              'bg-yellow-500/5 border-yellow-500/30'
+            )}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  {portfolioAnalysis.riskRegime.regime === 'risk-on' ? <TrendingUp className="h-6 w-6 text-emerald-400" /> : portfolioAnalysis.riskRegime.regime === 'risk-off' ? <TrendingDown className="h-6 w-6 text-red-400" /> : <Minus className="h-6 w-6 text-yellow-400" />}
+                  <span className={cn('text-xl font-bold uppercase',
+                    portfolioAnalysis.riskRegime.regime === 'risk-on' ? 'text-emerald-400' :
+                    portfolioAnalysis.riskRegime.regime === 'risk-off' ? 'text-red-400' : 'text-yellow-400'
+                  )}>{portfolioAnalysis.riskRegime.regime}</span>
+                </div>
+                <span className="text-lg font-bold text-white">{portfolioAnalysis.riskRegime.confidence}% confidence</span>
+              </div>
+              <p className="text-sm text-slate-300">{portfolioAnalysis.riskRegime.reasoning}</p>
+            </div>
+
+            {/* Risk Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3 text-center">
+                <p className="text-xs text-slate-400">Health Score</p>
+                <p className="text-xl font-bold text-white">{portfolioAnalysis.riskMetrics.portfolioHealthScore}</p>
+              </div>
+              <div className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3 text-center">
+                <p className="text-xs text-slate-400">Diversification</p>
+                <p className="text-xl font-bold text-white">{portfolioAnalysis.riskMetrics.diversificationScore}</p>
+              </div>
+              <div className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3 text-center">
+                <p className="text-xs text-slate-400">Concentration Risk</p>
+                <p className="text-xl font-bold text-white">{portfolioAnalysis.riskMetrics.concentrationRisk}%</p>
+              </div>
+              <div className="rounded-lg bg-slate-800/40 border border-slate-700/50 p-3 text-center">
+                <p className="text-xs text-slate-400">Active Milestones</p>
+                <p className="text-xl font-bold text-white">{portfolioAnalysis.riskMetrics.activeMilestones}/{portfolioAnalysis.riskMetrics.totalProjects}</p>
+              </div>
+            </div>
+
+            {/* Rebalancing Actions */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-2">Rebalancing Recommendations</h4>
+              <div className="space-y-2">
+                {portfolioAnalysis.rebalancingPlan.actions.map((a) => {
+                  const actionStyles: Record<string, { text: string; bg: string; icon: typeof TrendingUp }> = {
+                    increase: { text: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: TrendingUp },
+                    hold: { text: 'text-blue-400', bg: 'bg-blue-500/10', icon: Minus },
+                    pause_funding: { text: 'text-orange-400', bg: 'bg-orange-500/10', icon: Pause },
+                    exit: { text: 'text-red-400', bg: 'bg-red-500/10', icon: AlertTriangle },
+                  };
+                  const style = actionStyles[a.action] || actionStyles.hold;
+                  const Icon = style.icon;
+                  return (
+                    <div key={a.projectId} className="flex items-center gap-3 rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
+                      <Icon className={cn('h-4 w-4 flex-shrink-0', style.text)} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-white">{a.projectName}</span>
+                          <span className={cn('text-xs px-1.5 py-0.5 rounded uppercase font-bold', style.text, style.bg)}>{a.action.replace('_', ' ')}</span>
+                          {a.urgency === 'high' && <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/10 text-red-400">URGENT</span>}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">{a.reason}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="flex items-center gap-1 text-xs">
+                          <span className="text-slate-500">{a.currentAllocation}%</span>
+                          <ArrowRight className="h-3 w-3 text-slate-600" />
+                          <span className={cn('font-bold', style.text)}>{a.suggestedAllocation.toFixed(0)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </GlassCard>
+
+      {/* ===== 3) CIRCLE ESCROW ===== */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Lock className="h-5 w-5 text-amber-400" />
+            <h3 className="text-lg font-semibold text-white">Circle Milestone Escrow</h3>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">USDC</span>
+          </div>
+        </div>
+
+        {/* Escrow Action Selector */}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {[
+            { key: 'create' as const, label: 'Create Escrow', icon: Lock },
+            { key: 'release' as const, label: 'Release Milestone', icon: Unlock },
+            { key: 'check' as const, label: 'Check Status', icon: Search },
+            { key: 'pause' as const, label: 'Pause Funding', icon: Pause },
+          ].map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setEscrowAction(key)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border transition-all',
+                escrowAction === key
+                  ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+                  : 'border-slate-700 bg-slate-800/30 text-slate-400 hover:border-slate-600'
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Execute Button */}
+        <button
+          onClick={runEscrowOperation}
+          disabled={loadingEscrow}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 transition-colors text-sm disabled:opacity-50 mb-4"
+        >
+          {loadingEscrow ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+          Execute: {escrowAction.replace('_', ' ')} for {selectedProject.name}
+        </button>
+
+        {/* Escrow Result */}
+        {escrowResult && (
+          <div className="rounded-lg bg-slate-800/40 border border-amber-500/20 p-4">
+            <p className="text-sm text-amber-400 font-medium mb-2">{escrowResult.message}</p>
+            {escrowResult.circleIntegration && (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                {Object.entries(escrowResult.circleIntegration).map(([k, v]) => (
+                  <div key={k} className="text-xs">
+                    <span className="text-slate-500">{k}: </span>
+                    <span className="text-slate-300">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {escrowResult.escrow && (
+              <div className="mt-3 space-y-1">
+                <p className="text-xs text-slate-400">Escrow ID: <span className="text-white">{escrowResult.escrow.id}</span></p>
+                <p className="text-xs text-slate-400">Total Locked: <span className="text-white">${escrowResult.escrow.totalAmount?.toLocaleString()} USDC</span></p>
+                <p className="text-xs text-slate-400">Milestones: <span className="text-white">{escrowResult.escrow.milestones?.length}</span></p>
+              </div>
+            )}
+            {escrowResult.release && (
+              <div className="mt-3 space-y-1">
+                <p className="text-xs text-slate-400">TX Hash: <span className="text-cyan-400 font-mono text-xs">{escrowResult.release.txHash?.slice(0, 20)}...</span></p>
+                <p className="text-xs text-slate-400">Network: <span className="text-white">{escrowResult.release.network}</span></p>
+              </div>
+            )}
+            {escrowResult.status && (
+              <div className="mt-3 space-y-1">
+                <p className="text-xs text-slate-400">State: <span className="text-emerald-400">{escrowResult.status.state}</span></p>
+                <p className="text-xs text-slate-400">Released: <span className="text-white">${escrowResult.status.released?.toLocaleString()}</span> / ${escrowResult.status.totalLocked?.toLocaleString()}</p>
+                <p className="text-xs text-slate-400">Circle Wallet Balance: <span className="text-white">${escrowResult.status.circleWalletBalance?.toLocaleString()} USDC</span></p>
+              </div>
+            )}
+            {escrowResult.pause && (
+              <div className="mt-3">
+                <p className="text-xs text-orange-400 mb-1">Reason: {escrowResult.pause.reason}</p>
+                <p className="text-xs text-slate-400">Resume Conditions:</p>
+                <ul className="text-xs text-slate-300 list-disc list-inside">
+                  {escrowResult.pause.resumeConditions?.map((c: string, i: number) => <li key={i}>{c}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </GlassCard>
+
+      {/* ===== CIRCLE TOOLING + AGENT HUB LINK ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <GlassCard className="border-cyan-500/20">
+          <div className="flex items-center gap-2 mb-4">
+            <Shield className="h-5 w-5 text-cyan-400" />
+            <h3 className="text-sm font-semibold text-white">Circle Tooling Integration</h3>
+          </div>
+          <div className="space-y-2">
+            {[
+              { name: 'Agent Wallets', desc: 'Programmable USDC custody via Circle', where: '/agent-hub', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+              { name: 'Milestone Escrow', desc: 'AI-verified milestone release', where: '#escrow', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+              { name: 'Paymaster', desc: 'Gas-free USDC (Arc Testnet native)', where: '#', status: 'native', color: 'text-cyan-400', dot: 'bg-cyan-400' },
+              { name: 'CCTP / Gateway', desc: 'Cross-chain settlement ready', where: '#', status: 'ready', color: 'text-cyan-400', dot: 'bg-cyan-400' },
+            ].map((t) => (
+              <div key={t.name} className="flex items-center justify-between rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
+                <div>
+                  <p className="text-sm text-white font-medium">{t.name}</p>
+                  <p className="text-xs text-slate-400">{t.desc}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={cn('h-2 w-2 rounded-full', t.dot)} />
+                  <span className={cn('text-xs', t.color)}>{t.status}</span>
+                  {t.where.startsWith('/') && (
+                    <Link href={t.where} className="text-xs text-cyan-400 hover:text-cyan-300">
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+
+        {/* Decision Log */}
+        <GlassCard>
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="h-5 w-5 text-cyan-400" />
+            <h3 className="text-sm font-semibold text-white">Agent Decision Log</h3>
+            <span className="text-xs text-slate-500 ml-auto">{decisionLog.length} entries</span>
+          </div>
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+            {decisionLog.length === 0 ? (
+              <p className="text-xs text-slate-500 text-center py-6">Run an analysis to see agent decisions here</p>
+            ) : (
+              decisionLog.map((d) => {
+                const typeIcons: Record<string, typeof Brain> = { signal: BarChart3, rebalance: Target, escrow: DollarSign, risk: Shield };
+                const typeColors: Record<string, string> = { signal: 'text-cyan-400', rebalance: 'text-violet-400', escrow: 'text-amber-400', risk: 'text-red-400' };
+                const Icon = typeIcons[d.type] || Activity;
+                return (
+                  <div key={d.id} className="flex items-start gap-2 rounded bg-slate-800/30 p-2">
+                    <Icon className={cn('h-3.5 w-3.5 mt-0.5 flex-shrink-0', typeColors[d.type])} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-medium text-white">{d.action}</span>
+                        <span className={cn('text-xs px-1 py-0.5 rounded',
+                          d.status === 'success' ? 'text-emerald-400 bg-emerald-500/10' :
+                          d.status === 'pending' ? 'text-yellow-400 bg-yellow-500/10' :
+                          'text-red-400 bg-red-500/10'
+                        )}>{d.status}</span>
+                      </div>
+                      <p className="text-xs text-slate-400 truncate">{d.details}</p>
+                    </div>
+                    <span className="text-xs text-slate-600 flex-shrink-0">{d.timestamp}</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </GlassCard>
+      </div>
+
+      {/* Quick Links */}
+      <div className="flex gap-3 flex-wrap">
+        <Link href="/agent-hub" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-500/10 border border-violet-500/30 text-violet-400 hover:bg-violet-500/20 transition-colors text-sm">
+          <Coins className="h-4 w-4" /> Agent Hub — Manage Circle Wallets
+        </Link>
+        <Link href="/discovery" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-colors text-sm">
+          <Globe className="h-4 w-4" /> Discovery — Arc Ecosystem
+        </Link>
+        <Link href="/portfolio" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-colors text-sm">
+          <TrendingUp className="h-4 w-4" /> Portfolio — Investments
+        </Link>
+      </div>
     </div>
   );
 }
