@@ -23,16 +23,29 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
+    url: 'https://entarc.xyz',
     title: 'ENTARC — Autonomous Venture Intelligence Agent on Arc',
-    description: 'AI-driven autonomous venture intelligence agent with adaptive portfolio management and social signal intelligence on Arc Network',
+    description: 'First autonomous AI agent on Arc Network. Discovers pre-TGE projects, analyzes 5 signal sources, manages USDC investments via milestone-based escrow. Powered by Circle Agent Stack.',
     siteName: 'ENTARC',
-    images: ['/og-image.png'],
+    images: [{
+      url: '/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'ENTARC — Autonomous Venture Intelligence Agent on Arc Network',
+      type: 'image/png',
+    }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ENTARC — Autonomous Venture Intelligence Agent on Arc',
-    description: 'AI-driven autonomous venture intelligence agent on Arc Network',
-    images: ['/og-image.png'],
+    description: 'First autonomous AI agent on Arc Network. Discovers pre-TGE projects, analyzes signals, manages USDC via milestone-based escrow.',
+    images: [{
+      url: '/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'ENTARC — Autonomous Venture Intelligence Agent on Arc Network',
+    }],
+    creator: '@izzetcakmak',
   },
   icons: {
     icon: '/favicon.svg',
