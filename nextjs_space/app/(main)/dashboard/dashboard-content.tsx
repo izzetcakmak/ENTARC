@@ -46,7 +46,7 @@ export function DashboardContent() {
             Welcome to <span className="text-cyan-400">ENTARC</span>
           </h1>
           <p className="mt-1 text-slate-400">
-            Autonomous VC Agent on Arc Network
+            Autonomous Venture Intelligence Agent on Arc
           </p>
         </div>
         <div className="flex items-center gap-3">
