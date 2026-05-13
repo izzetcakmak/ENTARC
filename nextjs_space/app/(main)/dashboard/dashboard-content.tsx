@@ -11,7 +11,7 @@ import { TreasuryDisplay } from '@/components/wallet/treasury-display';
 import { AgentWalletDisplay } from '@/components/wallet/agent-wallet-display';
 import { useEntarcStore } from '@/store/use-entarc-store';
 import { useEffect, useState } from 'react';
-import { Zap, Target, TrendingUp, Settings } from 'lucide-react';
+import { Zap, Target, TrendingUp, Settings, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
 
@@ -50,6 +50,13 @@ export function DashboardContent() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/demo"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-5 py-2.5 font-medium text-white transition-all hover:shadow-lg hover:shadow-purple-500/25 hover:brightness-110"
+          >
+            <Play className="h-4 w-4" />
+            Watch Demo
+          </Link>
           <Link
             href="/discovery"
             className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-2.5 font-medium text-slate-900 transition-all hover:bg-cyan-400 hover:shadow-lg hover:shadow-cyan-500/25"
