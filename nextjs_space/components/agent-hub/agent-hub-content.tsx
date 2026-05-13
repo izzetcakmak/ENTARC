@@ -23,6 +23,7 @@ import {
   Globe,
   Key,
   Fingerprint,
+  Droplets,
 } from 'lucide-react';
 
 interface WalletData {
@@ -48,6 +49,8 @@ export function AgentHubContent() {
   const [creating, setCreating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fundingWallet, setFundingWallet] = useState<string | null>(null);
+  const [fundResult, setFundResult] = useState<{ address: string; success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     fetchStatus();
@@ -120,6 +123,29 @@ export function AgentHubContent() {
     navigator.clipboard.writeText(address);
     setCopiedId(address);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const requestFaucet = async (address: string) => {
+    setFundingWallet(address);
+    setFundResult(null);
+    try {
+      const res = await fetch('/api/circle/faucet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, blockchain: 'ARC-TESTNET', usdc: true, native: true }),
+      });
+      const data = await res.json();
+      setFundResult({
+        address,
+        success: data.success,
+        message: data.success
+          ? '20 USDC + native tokens requested! Arrives in ~30s.'
+          : data.error || 'Faucet request failed',
+      });
+    } catch (err: any) {
+      setFundResult({ address, success: false, message: err.message });
+    }
+    setFundingWallet(null);
   };
 
   const agentFeatures = [
@@ -365,15 +391,53 @@ export function AgentHubContent() {
                       </div>
                     </div>
                   </div>
-                  <a
-                    href={`https://testnet.arcscan.app/address/${wallet.address}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-cyan-400 transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => requestFaucet(wallet.address)}
+                      disabled={fundingWallet === wallet.address}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/30 text-violet-400 hover:bg-violet-500/20 transition-colors text-xs disabled:opacity-50"
+                      title="Request 20 test USDC from Circle Faucet"
+                    >
+                      {fundingWallet === wallet.address ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Droplets className="w-3.5 h-3.5" />
+                      )}
+                      Fund
+                    </button>
+                    <a
+                      href={`https://testnet.arcscan.app/address/${wallet.address}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-500 hover:text-cyan-400 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
                 </div>
+                {/* Faucet result banner */}
+                {fundResult && fundResult.address === wallet.address && (
+                  <div className={`mt-2 rounded-lg p-2.5 text-xs ${
+                    fundResult.success
+                      ? 'bg-emerald-500/5 border border-emerald-500/30 text-emerald-400'
+                      : 'bg-orange-500/5 border border-orange-500/30 text-orange-400'
+                  }`}>
+                    {fundResult.success ? (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{fundResult.message}</span>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="mb-1">{fundResult.message}</p>
+                        <a href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer"
+                          className="underline text-violet-400 hover:text-violet-300">
+                          Use web faucet → faucet.circle.com
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -459,8 +523,9 @@ function AppKitDemo() {
   // Onboard state
   const [onboardMethod, setOnboardMethod] = useState<'email' | 'social' | 'passkey'>('email');
   const [demoEmail, setDemoEmail] = useState('');
-  const [onboardStep, setOnboardStep] = useState<'idle' | 'processing' | 'creating' | 'done'>('idle');
+  const [onboardStep, setOnboardStep] = useState<'idle' | 'processing' | 'creating' | 'funding' | 'done'>('idle');
   const [createdWallet, setCreatedWallet] = useState<string | null>(null);
+  const [faucetStatus, setFaucetStatus] = useState<'idle' | 'loading' | 'success' | 'fallback'>('idle');
 
   // Send state
   const [sendTo, setSendTo] = useState('0x9a3f...dE7b');
@@ -487,11 +552,28 @@ function AppKitDemo() {
   // === ONBOARD ===
   const runOnboard = async () => {
     if (onboardMethod === 'email' && !demoEmail) return;
+    setFaucetStatus('idle');
     setOnboardStep('processing');
     await new Promise(r => setTimeout(r, 1200));
     setOnboardStep('creating');
     await new Promise(r => setTimeout(r, 1500));
-    setCreatedWallet(`0x${randomHex(40)}`);
+    const walletAddr = `0x${randomHex(40)}`;
+    setCreatedWallet(walletAddr);
+    // Auto-fund via Circle Faucet
+    setOnboardStep('funding');
+    setFaucetStatus('loading');
+    try {
+      const res = await fetch('/api/circle/faucet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: walletAddr, blockchain: 'ARC-TESTNET', usdc: true, native: true }),
+      });
+      const data = await res.json();
+      setFaucetStatus(data.success ? 'success' : 'fallback');
+    } catch {
+      setFaucetStatus('fallback');
+    }
+    await new Promise(r => setTimeout(r, 800));
     setOnboardStep('done');
   };
 
@@ -611,32 +693,48 @@ function AppKitDemo() {
               </button>
             </div>
           )}
-          {(onboardStep === 'processing' || onboardStep === 'creating') && (
+          {(onboardStep === 'processing' || onboardStep === 'creating' || onboardStep === 'funding') && (
             <div className="flex flex-col items-center py-8">
               <Loader2 className="w-7 h-7 text-violet-400 animate-spin mb-3" />
-              <p className="text-white text-sm font-medium">{onboardStep === 'processing' ? 'Authenticating...' : 'Creating Programmable Wallet...'}</p>
+              <p className="text-white text-sm font-medium">
+                {onboardStep === 'processing' ? 'Authenticating...' : onboardStep === 'creating' ? 'Creating Programmable Wallet...' : 'Requesting Test USDC from Circle Faucet...'}
+              </p>
               <div className="flex gap-3 mt-3">
-                {['Auth', 'Wallet', 'Fund'].map((s, i) => (
-                  <div key={s} className="flex items-center gap-1">
-                    <div className={`h-2 w-2 rounded-full ${(onboardStep === 'processing' && i === 0) || (onboardStep === 'creating' && i === 1) ? 'bg-violet-400 animate-pulse' : i < (onboardStep === 'creating' ? 1 : 0) ? 'bg-emerald-400' : 'bg-gray-600'}`} />
-                    <span className="text-xs text-gray-400">{s}</span>
-                  </div>
-                ))}
+                {['Auth', 'Wallet', 'Fund USDC'].map((s, i) => {
+                  const stepIdx = onboardStep === 'processing' ? 0 : onboardStep === 'creating' ? 1 : 2;
+                  return (
+                    <div key={s} className="flex items-center gap-1">
+                      <div className={`h-2 w-2 rounded-full ${i === stepIdx ? 'bg-violet-400 animate-pulse' : i < stepIdx ? 'bg-emerald-400' : 'bg-gray-600'}`} />
+                      <span className="text-xs text-gray-400">{s}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
           {onboardStep === 'done' && createdWallet && (
             <div className="space-y-3">
               <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/30 p-4">
-                <div className="flex items-center gap-2 mb-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-emerald-400 text-sm font-medium">Wallet Ready</span></div>
+                <div className="flex items-center gap-2 mb-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-emerald-400 text-sm font-medium">Wallet Ready &amp; Funded</span></div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div><p className="text-gray-500">Address</p><code className="text-cyan-400 font-mono break-all">{createdWallet}</code></div>
                   <div><p className="text-gray-500">Method</p><p className="text-white">{onboardMethod === 'email' ? demoEmail : onboardMethod === 'social' ? 'Google OAuth' : 'Passkey'}</p></div>
                   <div><p className="text-gray-500">Network</p><p className="text-white">Arc Testnet</p></div>
-                  <div><p className="text-gray-500">Type</p><p className="text-white">Circle Programmable Wallet</p></div>
+                  <div><p className="text-gray-500">Balance</p>
+                    {faucetStatus === 'success' ? (
+                      <p className="text-emerald-400 font-medium">20 USDC <span className="text-gray-500 font-normal">(from Circle Faucet)</span></p>
+                    ) : (
+                      <p className="text-orange-400">Faucet unavailable — <a href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-300">fund manually</a></p>
+                    )}
+                  </div>
                 </div>
               </div>
-              <button onClick={() => { setOnboardStep('idle'); setCreatedWallet(null); setDemoEmail(''); }} className="text-xs text-gray-400 hover:text-white transition-colors">Reset Demo</button>
+              <div className="rounded-lg bg-gray-800/30 border border-gray-700 p-2">
+                <p className="text-xs text-gray-400">
+                  <span className="text-violet-400 font-medium">Full Flow:</span> Authenticate → Create wallet → Auto-fund with test USDC → Ready to Send / Swap / Bridge
+                </p>
+              </div>
+              <button onClick={() => { setOnboardStep('idle'); setCreatedWallet(null); setDemoEmail(''); setFaucetStatus('idle'); }} className="text-xs text-gray-400 hover:text-white transition-colors">Reset Demo</button>
             </div>
           )}
         </div>
