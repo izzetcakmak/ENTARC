@@ -538,7 +538,7 @@ function AppKitDemo() {
   const [swapTo, setSwapTo] = useState('WETH');
   const [swapAmount, setSwapAmount] = useState('100');
   const [swapStep, setSwapStep] = useState<'idle' | 'quoting' | 'executing' | 'done'>('idle');
-  const [swapResult, setSwapResult] = useState<{ received: string; rate: string; gas: string } | null>(null);
+  const [swapResult, setSwapResult] = useState<{ received: string; rate: string; gas: string; txHash: string } | null>(null);
 
   // Bridge state
   const [bridgeFrom, setBridgeFrom] = useState('Arc Testnet');
@@ -599,6 +599,7 @@ function AppKitDemo() {
       received: `${(amt * rate).toFixed(6)} ${swapTo}`,
       rate: `1 USDC = ${rate} ${swapTo}`,
       gas: '$0.00 (gas-free)',
+      txHash: `0x${randomHex(64)}`,
     });
     setSwapStep('done');
   };
@@ -781,7 +782,7 @@ function AppKitDemo() {
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between"><span className="text-gray-500">Amount</span><span className="text-white">{sendAmount} USDC</span></div>
                   <div className="flex justify-between"><span className="text-gray-500">To</span><span className="text-cyan-400 font-mono">{sendTo}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">TX Hash</span><span className="text-cyan-400 font-mono">{sendTxHash.slice(0, 20)}...</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">TX Hash</span><a href={`https://testnet.arcscan.app/tx/${sendTxHash}`} target="_blank" rel="noopener noreferrer" className="text-cyan-400 font-mono hover:text-cyan-300 underline decoration-cyan-500/30 hover:decoration-cyan-400 transition-colors">{sendTxHash.slice(0, 20)}... ↗</a></div>
                   <div className="flex justify-between"><span className="text-gray-500">Gas</span><span className="text-emerald-400">$0.00</span></div>
                 </div>
               </div>
@@ -848,6 +849,7 @@ function AppKitDemo() {
                   <div className="flex justify-between"><span className="text-gray-500">Sent</span><span className="text-white">{swapAmount} USDC</span></div>
                   <div className="flex justify-between"><span className="text-gray-500">Received</span><span className="text-emerald-400">{swapResult.received}</span></div>
                   <div className="flex justify-between"><span className="text-gray-500">Rate</span><span className="text-white">{swapResult.rate}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">TX Hash</span><a href={`https://testnet.arcscan.app/tx/${swapResult.txHash}`} target="_blank" rel="noopener noreferrer" className="text-cyan-400 font-mono hover:text-cyan-300 underline decoration-cyan-500/30 hover:decoration-cyan-400 transition-colors">{swapResult.txHash.slice(0, 20)}... ↗</a></div>
                   <div className="flex justify-between"><span className="text-gray-500">Gas</span><span className="text-emerald-400">{swapResult.gas}</span></div>
                 </div>
               </div>
@@ -932,8 +934,8 @@ function AppKitDemo() {
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between"><span className="text-gray-500">Amount</span><span className="text-white">{bridgeAmount} USDC</span></div>
                   <div className="flex justify-between"><span className="text-gray-500">Route</span><span className="text-white">{bridgeFrom} → {bridgeTo}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Attestation</span><span className="text-cyan-400 font-mono">{bridgeResult.attestationHash.slice(0, 22)}...</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Dest TX</span><span className="text-cyan-400 font-mono">{bridgeResult.destTx.slice(0, 22)}...</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Attestation</span><a href={`https://iris-api.circle.com/v1/attestations/${bridgeResult.attestationHash}`} target="_blank" rel="noopener noreferrer" className="text-cyan-400 font-mono hover:text-cyan-300 underline decoration-cyan-500/30 hover:decoration-cyan-400 transition-colors">{bridgeResult.attestationHash.slice(0, 22)}... ↗</a></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Dest TX</span><a href={`https://testnet.arcscan.app/tx/${bridgeResult.destTx}`} target="_blank" rel="noopener noreferrer" className="text-cyan-400 font-mono hover:text-cyan-300 underline decoration-cyan-500/30 hover:decoration-cyan-400 transition-colors">{bridgeResult.destTx.slice(0, 22)}... ↗</a></div>
                 </div>
               </div>
               <div className="rounded-lg bg-gray-800/30 border border-gray-700 p-2">

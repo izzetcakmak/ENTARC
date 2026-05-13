@@ -656,7 +656,7 @@ export function AutonomousAgentDashboard() {
             )}
             {escrowResult.release && (
               <div className="mt-3 space-y-1">
-                <p className="text-xs text-slate-400">TX Hash: <span className="text-cyan-400 font-mono text-xs">{escrowResult.release.txHash?.slice(0, 20)}...</span></p>
+                <p className="text-xs text-slate-400">TX Hash: <a href={`https://testnet.arcscan.app/tx/${escrowResult.release.txHash}`} target="_blank" rel="noopener noreferrer" className="text-cyan-400 font-mono text-xs hover:text-cyan-300 underline decoration-cyan-500/30 hover:decoration-cyan-400 transition-colors">{escrowResult.release.txHash?.slice(0, 20)}... ↗</a></p>
                 <p className="text-xs text-slate-400">Network: <span className="text-white">{escrowResult.release.network}</span></p>
               </div>
             )}
@@ -763,7 +763,7 @@ export function AutonomousAgentDashboard() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs text-slate-500">TX: <span className="text-cyan-400 font-mono">{nanopayStream.txHash.slice(0, 24)}...</span></p>
+                  <p className="text-xs text-slate-500">TX: <a href={`https://testnet.arcscan.app/tx/${nanopayStream.txHash}`} target="_blank" rel="noopener noreferrer" className="text-cyan-400 font-mono hover:text-cyan-300 underline decoration-cyan-500/30 hover:decoration-cyan-400 transition-colors">{nanopayStream.txHash.slice(0, 24)}... ↗</a></p>
                   <p className="text-xs text-slate-500">Network: <span className="text-white">{nanopayStream.network}</span></p>
                   <p className="text-xs text-slate-500">Status: <span className={streamActive ? 'text-purple-400' : 'text-emerald-400'}>{streamActive ? 'Streaming' : 'Completed'}</span></p>
                 </div>
