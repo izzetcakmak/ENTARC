@@ -60,7 +60,8 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleCreateEscrow(body: any) {
-  const { config } = body as { config: EscrowConfig };
+  // Support both { config: {...} } and flat body formats
+  const config: EscrowConfig = body.config ?? body;
 
   if (!config?.projectId || !config?.totalAmount || !config?.milestones?.length) {
     return NextResponse.json({ error: 'Invalid escrow config' }, { status: 400 });
