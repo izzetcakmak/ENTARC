@@ -18,6 +18,7 @@ import {
   LogOut,
   Globe,
   Bot,
+  Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -30,6 +31,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Deal Flow', href: '/deal-flow', icon: Sparkles },
   { label: 'Discovery', href: '/discovery', icon: Compass },
   { label: 'Portfolio', href: '/portfolio', icon: Briefcase },
   { label: 'Agent Hub', href: '/agent-hub', icon: Bot },
