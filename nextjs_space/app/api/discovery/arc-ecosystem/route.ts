@@ -136,27 +136,7 @@ const ARC_ECOSYSTEM_PROJECTS = [
     team: ['Glencorse033'],
     tags: ['stripe', 'fiat', 'bridge', 'payments'],
   },
-  {
-    id: 'coinbase-x402',
-    name: 'x402 Protocol',
-    tagline: 'Official x402 payment standard by Coinbase',
-    description: 'The official x402 protocol implementation by Coinbase. HTTP 402 Payment Required standard for autonomous AI payments. SDKs in TypeScript, Python, and Go.',
-    category: 'Infrastructure',
-    stage: 'Pre-TGE',
-    trustScore: 95,
-    sentiment: 'Bullish',
-    activityLevel: 'High',
-    github: { stars: 1200, commits30d: 89, contributors: 15, url: 'https://github.com/coinbase/x402' },
-    social: { twitter: '@coinaboredeveloper', discord: 5000, mentions: 500 },
-    contact: { 
-      github: 'https://github.com/coinbase/x402',
-      website: 'https://x402.org'
-    },
-    funding: { raised: 0, target: 0, backers: 0 },
-    arcHub: { votes: 892, comments: 156, verified: true },
-    team: ['Coinbase'],
-    tags: ['x402', 'protocol', 'standard', 'coinbase'],
-  },
+
 ];
 
 function transformProject(project: typeof ARC_ECOSYSTEM_PROJECTS[0]) {
