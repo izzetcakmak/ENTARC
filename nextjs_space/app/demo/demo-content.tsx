@@ -39,7 +39,7 @@ const UI: Record<Lang, {
     pause: 'Pause',
     presenting: 'PRESENTING',
     kbHint: '← → arrows to navigate | Space to play/pause',
-    hackathon: 'Agora Agents Hackathon 2026',
+    hackathon: 'Programmable Money Hackathon · Build on Arc',
   },
   tr: {
     tryApp: 'Uygulamayı Dene →',
@@ -47,7 +47,7 @@ const UI: Record<Lang, {
     pause: 'Duraklat',
     presenting: 'SUNUYOR',
     kbHint: '← → tuşları ile gezin | Space ile oynat/duraklat',
-    hackathon: 'Agora Agents Hackathon 2026',
+    hackathon: 'Programmable Money Hackathon · Build on Arc',
   },
 };
 
@@ -56,7 +56,7 @@ const SLIDES: SlideData[] = [
     id: 'intro',
     title: { en: 'What is ENTARC?', tr: 'ENTARC Nedir?' },
     subtitle: { en: 'Autonomous Venture Intelligence Agent on Arc Network', tr: 'Arc Network üzerinde Otonom Girişim Zeka Ajanı' },
-    badge: 'Agora Agents Hackathon',
+    badge: 'Programmable Money Hackathon · Build on Arc',
     badgeColor: 'from-purple-500 to-pink-500',
     bullets: [
       { icon: <Brain className="w-5 h-5" />, text: { en: 'An autonomous AI agent running on', tr: 'Arc Network üzerinde çalışan' }, highlight: { en: 'Arc Network', tr: 'otonom yapay zeka ajanı' } },
@@ -131,9 +131,9 @@ const SLIDES: SlideData[] = [
   {
     id: 'traction',
     title: { en: 'Traction & Innovation', tr: 'Traction & Innovation' },
-    subtitle: { en: 'Hackathon Scoring: Agentic 30% | Traction 30% | Circle 20% | Innovation 20%', tr: 'Hackathon Scoring: Agentic 30% | Traction 30% | Circle 20% | Innovation 20%' },
-    badge: '$50K PRIZE POOL',
-    badgeColor: 'from-yellow-500 to-amber-500',
+    subtitle: { en: 'Agentic Track — Final Submission: August 9 · Demo Day: August 20, 2026', tr: 'Agentic Track — Final Teslim: 9 Ağustos · Demo Day: 20 Ağustos 2026' },
+    badge: 'AGENTIC TRACK',
+    badgeColor: 'from-indigo-500 to-violet-500',
     bullets: [
       { icon: <Brain className="w-5 h-5" />, text: { en: 'Agentic Sophistication:', tr: 'Agentic Sophistication:' }, highlight: { en: '5-source signal fusion, autonomous decisions', tr: '5 kaynaklı sinyal füzyonu, otonom kararlar' } },
       { icon: <Rocket className="w-5 h-5" />, text: { en: 'Traction:', tr: 'Traction:' }, highlight: { en: 'Deployed on entarc.xyz — fully functional', tr: 'entarc.xyz\'de yayında — tam fonksiyonel' } },
