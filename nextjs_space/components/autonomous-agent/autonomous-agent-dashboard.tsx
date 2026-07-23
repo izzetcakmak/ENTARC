@@ -352,8 +352,8 @@ export function AutonomousAgentDashboard() {
           </h1>
           <p className="text-slate-400 mt-1">AI-driven portfolio management & social signal intelligence on Arc Network</p>
           <div className="flex gap-2 mt-2">
-            <span className="text-xs px-2 py-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">RFB 04 — Adaptive Portfolio</span>
-            <span className="text-xs px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">RFB 06 — Signal Intelligence</span>
+            <span className="text-xs px-2 py-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">Agentic Track — Adaptive Portfolio</span>
+            <span className="text-xs px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Agentic Track — Signal Intelligence</span>
           </div>
         </div>
       </div>
@@ -389,7 +389,7 @@ export function AutonomousAgentDashboard() {
           <div className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-cyan-400" />
             <h3 className="text-lg font-semibold text-white">Signal Aggregation</h3>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">RFB 06</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Agentic Track</span>
           </div>
           <button
             onClick={runSignalAnalysis}
@@ -482,7 +482,7 @@ export function AutonomousAgentDashboard() {
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5 text-violet-400" />
             <h3 className="text-lg font-semibold text-white">Adaptive Portfolio Manager</h3>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">RFB 04</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30">Agentic Track</span>
           </div>
           <button
             onClick={runPortfolioAnalysis}
