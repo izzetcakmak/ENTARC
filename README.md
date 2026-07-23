@@ -8,7 +8,7 @@
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-entarc.xyz-06b6d4?style=for-the-badge)](https://entarc.xyz)
 [![Interactive Demo](https://img.shields.io/badge/🎬_Interactive_Demo-EN%2FTR-8b5cf6?style=for-the-badge)](https://entarc.xyz/demo)
-[![Hackathon](https://img.shields.io/badge/🏆_Agora_Agents-Hackathon_2026-f59e0b?style=for-the-badge)](https://agorasquare.io)
+[![Hackathon](https://img.shields.io/badge/🏆_Programmable_Money_Hackathon-Build_on_Arc-f59e0b?style=for-the-badge)](https://community.arc.io/public/events/hackathon-programmable-money-74llz8htis)
 
 </div>
 
@@ -152,14 +152,16 @@ Circle wallet creation, faucet funding, and full App Kit demo (Onboard, Send, Sw
 
 ## 🏆 Hackathon
 
-**Agora Agents Hackathon** (May 11–25, 2026 · $50K Prize Pool)
+**Programmable Money Hackathon · Build on Arc** — Agentic Track (Final Submission: August 9, 2026 · Demo Day: August 20, 2026)
 
-| Judging Criteria | Weight | ENTARC Coverage |
-|-----------------|--------|----------------|
-| Agentic Sophistication | 30% | 5-source signal fusion, autonomous decision engine, escrow + nanopayments |
-| Traction | 30% | Live at entarc.xyz — every button is functional and clickable |
-| Circle Tooling | 20% | Programmable Wallets, CCTP, Faucet, App Kit — full stack |
-| Innovation | 20% | First autonomous VC agent on Arc Network |
+| Final Requirement | ENTARC Coverage |
+|-------------------|-----------------|
+| Working MVP on Arc | Live at [entarc.xyz](https://entarc.xyz) — Circle Developer-Controlled Wallets + Faucet on ARC-TESTNET |
+| Public repo | [github.com/izzetcakmak/ENTARC](https://github.com/izzetcakmak/ENTARC) |
+| 3-minute video | Voiced product walkthrough — signal engine, escrow, nanopayment streaming |
+| Presentation deck | Full pitch deck — Wallets + Faucet live today; escrow, streaming & CCTP shipping by Demo Day |
+
+Top teams earn a place in an 8-week accelerator programme.
 
 ---
 
