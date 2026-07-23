@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 /**
- * RFB 04 - Adaptive Portfolio Manager
+ * Adaptive Portfolio Manager
  * AI-driven risk regime detection, rebalancing, and risk management
  * for Pre-TGE venture investments on Arc Network
  */

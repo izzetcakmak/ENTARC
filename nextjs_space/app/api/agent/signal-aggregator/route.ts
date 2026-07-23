@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 /**
- * RFB 06 - Social Trading Intelligence / Signal Aggregator
+ * Signal Aggregator - Social Trading Intelligence
  * Multi-source signal analysis for Pre-TGE project evaluation
  * Aggregates GitHub, social, community, and on-chain signals
  */
