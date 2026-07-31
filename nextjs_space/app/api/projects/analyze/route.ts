@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
+import { generateAnalysis, hasGemini, geminiModel } from '@/lib/gemini';
 
 // AI Trust Score Analysis
 export async function POST(request: NextRequest) {
@@ -79,46 +80,17 @@ Scoring Guidelines:
 Respond with raw JSON only. Do not include code blocks, markdown, or any other formatting.
 `;
 
-    // Call LLM API
-    const llmResponse = await fetch('https://apps.abacus.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.ABACUSAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert AI venture capital analyst specializing in blockchain and crypto projects. Provide objective, data-driven analysis.',
-          },
-          {
-            role: 'user',
-            content: analysisPrompt,
-          },
-        ],
-        response_format: { type: 'json_object' },
-        max_tokens: 1000,
-        temperature: 0.7,
-      }),
-    });
-
-    if (!llmResponse.ok) {
-      const errorText = await llmResponse.text();
-      console.error('LLM API error:', errorText);
+    // Gemini-powered analysis (falls back to the legacy proxy without a key)
+    let analysisText: string;
+    try {
+      analysisText = await generateAnalysis(
+        'You are an expert AI venture capital analyst specializing in blockchain and crypto projects. Provide objective, data-driven analysis.',
+        analysisPrompt
+      );
+    } catch (e: any) {
+      console.error('LLM API error:', e?.message ?? e);
       return NextResponse.json(
         { error: 'AI analysis failed' },
-        { status: 500 }
-      );
-    }
-
-    const llmData = await llmResponse.json();
-    const analysisText = llmData.choices?.[0]?.message?.content;
-
-    if (!analysisText) {
-      return NextResponse.json(
-        { error: 'No analysis generated' },
         { status: 500 }
       );
     }
@@ -158,6 +130,7 @@ Respond with raw JSON only. Do not include code blocks, markdown, or any other f
         status: updatedProject.status,
       },
       analysis,
+      engine: hasGemini() ? `gemini:${geminiModel()}` : 'abacus:gpt-4.1-mini',
     });
   } catch (error) {
     console.error('Analysis error:', error);
