@@ -5,9 +5,14 @@
  */
 
 export const ARC_TESTNET_ADDRESSES = {
-  // Native Fiat Token (USDC on Arc)
+  // USDC is Arc's NATIVE gas token — there is no ERC-20 contract to call for
+  // transfers (the previous value here was a malformed 39-char address, and the
+  // config's proxy address has no code on the live testnet). ERC-7528 native
+  // sentinel used so nothing can accidentally treat this as a real contract.
+  // Agent-side transfers go through Circle's API, which resolves USDC by its
+  // own token id, never by address.
   TOKEN: {
-    ADDRESS: '0x0abb20f4e0e1a1d53e0b1e0a1e0a1e0a1e0a1e0',
+    ADDRESS: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     SYMBOL: 'USDC',
     NAME: 'USD Coin',
     DECIMALS: 6,
