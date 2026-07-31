@@ -2,31 +2,47 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { createHash } from 'crypto';
 import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/db';
+import {
+  getOrCreateAgentWallet,
+  getUsdcBalance,
+  transferUsdc,
+  AGENT_BLOCKCHAIN,
+} from '@/lib/circle-client';
+import { checkAgentPolicy, getAgentPolicy } from '@/lib/agent-policy';
 
 /**
- * Circle Escrow — Milestone-Based Investment Escrow
- * Uses Circle Agent Wallets for programmatic USDC escrow management
- * 
+ * Circle Escrow — Milestone-Based Investment Escrow (REAL transfers)
+ *
+ * The agent wallet (Circle developer-controlled, Arc Testnet) is the escrow:
+ * USDC sits in it until the agent releases a tranche. Every release is a real
+ * on-chain USDC transfer with a block-explorer-verifiable hash. There is no
+ * human approval step — the spending policy in lib/agent-policy.ts is the
+ * only gate, which is exactly the point.
+ *
  * Flow:
- * 1. AI agent approves investment → Creates escrow via Circle Wallet
- * 2. USDC locked in agent wallet with spending policy
- * 3. Milestone completed → AI verifies → Releases tranche
- * 4. Milestone failed → Funds returned or held
+ * 1. AI analysis approves a project; a proposal reaches ACCEPTED
+ * 2. create-escrow → policy check → real USDC transfer of the first tranche
+ *    → proposal FUNDED, tx hash persisted
+ * 3. release-milestone → policy check → real transfer of the next tranche
+ * 4. pause-funding → risk monitor flips a flag the policy gate enforces
  */
 
-interface EscrowConfig {
-  projectId: string;
-  projectName: string;
-  totalAmount: number;
-  milestones: Array<{
-    id: string;
-    title: string;
-    amount: number;
-    percentage: number;
-  }>;
-  investorWallet: string;
-  agentWalletId: string;
+const EVM_ADDRESS = /^0x[a-fA-F0-9]{40}$/;
+
+/**
+ * Deterministic idempotency key per (proposal, milestone): a client retry of
+ * the same release can never double-send, because Circle dedupes on this key.
+ */
+function idempotencyKeyFor(proposalId: string, milestoneKey: string): string {
+  const h = createHash('sha256').update(`entarc:${proposalId}:${milestoneKey}`).digest();
+  const b = Buffer.from(h.subarray(0, 16));
+  b[6] = (b[6] & 0x0f) | 0x40; // version 4
+  b[8] = (b[8] & 0x3f) | 0x80; // RFC 4122 variant
+  const hex = b.toString('hex');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -40,11 +56,11 @@ export async function POST(req: NextRequest) {
     const { action } = body;
 
     if (action === 'create-escrow') {
-      return handleCreateEscrow(body);
+      return handleFundProposal(body, 'initial');
     } else if (action === 'release-milestone') {
-      return handleReleaseMilestone(body);
+      return handleFundProposal(body, 'milestone');
     } else if (action === 'check-status') {
-      return handleCheckStatus(body);
+      return handleCheckStatus();
     } else if (action === 'pause-funding') {
       return handlePauseFunding(body);
     }
@@ -59,111 +75,242 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function handleCreateEscrow(body: any) {
-  // Support both { config: {...} } and flat body formats
-  const config: EscrowConfig = body.config ?? body;
+/**
+ * Fund a proposal tranche with a real USDC transfer from the agent wallet.
+ *
+ * Two entry modes:
+ * - { proposalId, milestoneId? } — full flow: DB-backed, persists tx hash,
+ *   flips proposal/project/milestone states.
+ * - { recipient, amountUsdc, projectName?, trustScore? } — direct mode for
+ *   dashboard demos: same policy gate, same real transfer, no DB rows.
+ */
+async function handleFundProposal(body: any, phase: 'initial' | 'milestone') {
+  const { proposalId, milestoneId, recipient, amountUsdc, projectName, trustScore } = body;
 
-  if (!config?.projectId || !config?.totalAmount || !config?.milestones?.length) {
-    return NextResponse.json({ error: 'Invalid escrow config' }, { status: 400 });
+  // ---------- resolve what to pay, to whom, under which trust score ----------
+  let payTo: string;
+  let payAmount: number;
+  let payTrustScore: number | null = null;
+  let fundingPaused = false;
+  let proposal: any = null;
+  let milestoneRow: any = null;
+  let label: string;
+
+  if (proposalId) {
+    proposal = await prisma.investmentProposal.findUnique({
+      where: { id: proposalId },
+      include: {
+        project: { include: { milestones: { orderBy: { orderIndex: 'asc' } } } },
+        founder: { select: { walletAddress: true, name: true } },
+      },
+    });
+    if (!proposal) {
+      return NextResponse.json({ error: 'Proposal not found' }, { status: 404 });
+    }
+    const okStates = phase === 'initial' ? ['ACCEPTED'] : ['FUNDED'];
+    if (!okStates.includes(proposal.status)) {
+      return NextResponse.json(
+        { error: `Proposal is ${proposal.status}; expected ${okStates.join('/')}` },
+        { status: 409 }
+      );
+    }
+    payTo = proposal.founder?.walletAddress || '';
+    if (!EVM_ADDRESS.test(payTo)) {
+      return NextResponse.json(
+        { error: 'Founder has no valid wallet address on file' },
+        { status: 422 }
+      );
+    }
+
+    const total = proposal.agreedAmount ?? proposal.proposedAmount;
+    const milestones = proposal.project?.milestones ?? [];
+    if (phase === 'initial') {
+      milestoneRow = milestones[0] ?? null;
+    } else {
+      milestoneRow = milestoneId
+        ? milestones.find((m: any) => m.id === milestoneId)
+        : milestones.find((m: any) => m.status !== 'RELEASED');
+      if (!milestoneRow) {
+        return NextResponse.json({ error: 'No releasable milestone found' }, { status: 404 });
+      }
+      if (milestoneRow.status === 'RELEASED') {
+        return NextResponse.json({ error: 'Milestone already released' }, { status: 409 });
+      }
+    }
+    // Tranche = milestone percentage of the agreed total; full amount when the
+    // project defined no milestones.
+    payAmount = milestoneRow ? (total * milestoneRow.percentage) / 100 : total;
+    payAmount = Math.round(payAmount * 100) / 100;
+    payTrustScore = proposal.project?.aiTrustScore ?? null;
+    fundingPaused = Boolean((proposal.terms as any)?.fundingPaused);
+    label = `${proposal.project?.name ?? 'project'}${milestoneRow ? ` · ${milestoneRow.title}` : ''}`;
+  } else {
+    // Direct mode (dashboard demo): still policy-gated, still a real transfer.
+    payTo = String(recipient || '');
+    payAmount = Number(amountUsdc);
+    payTrustScore = trustScore != null ? Number(trustScore) : null;
+    label = projectName || 'direct investment';
+    if (!EVM_ADDRESS.test(payTo)) {
+      return NextResponse.json({ error: 'Invalid recipient address' }, { status: 400 });
+    }
   }
 
-  // Create escrow record with Circle Agent Wallet as custodian
-  const escrow = {
-    id: `escrow_${Date.now()}`,
-    projectId: config.projectId,
-    projectName: config.projectName,
-    totalAmount: config.totalAmount,
-    releasedAmount: 0,
-    remainingAmount: config.totalAmount,
-    status: 'active',
-    agentWalletId: config.agentWalletId,
-    milestones: config.milestones.map(m => ({
-      ...m,
-      status: 'locked',
-      releasedAt: null,
-      txHash: null,
-    })),
-    // Circle Wallet spending policy
-    spendingPolicy: {
-      maxPerTransaction: config.milestones.reduce((max, m) => Math.max(max, m.amount), 0),
-      allowedRecipients: [config.investorWallet],
-      timeLimit: '90d',
-      requiresAIApproval: true,
-    },
-    createdAt: new Date().toISOString(),
-  };
-
-  return NextResponse.json({
-    success: true,
-    escrow,
-    message: `Escrow created for ${config.projectName}. ${config.totalAmount} USDC locked across ${config.milestones.length} milestones.`,
-    circleIntegration: {
-      walletType: 'Developer-Controlled (Circle Agent Stack)',
-      paymentMethod: 'USDC on Arc Testnet',
-      gasStrategy: 'Paymaster-sponsored (gas-free for users)',
-      settlementNetwork: 'Arc Network',
-    },
+  // ---------- the policy gate: the agent's only approval path ----------
+  const verdict = await checkAgentPolicy({
+    amountUsdc: payAmount,
+    trustScore: payTrustScore,
+    fundingPaused,
   });
-}
+  if (!verdict.allowed) {
+    return NextResponse.json(
+      { success: false, blocked: true, policy: verdict, message: `Policy denied: ${verdict.reason}` },
+      { status: 403 }
+    );
+  }
 
-async function handleReleaseMilestone(body: any) {
-  const { escrowId, milestoneId, projectName } = body;
+  // ---------- real money movement ----------
+  const wallet = await getOrCreateAgentWallet();
+  const balance = await getUsdcBalance(wallet.id);
+  if (!balance || Number(balance.amount) < payAmount) {
+    return NextResponse.json(
+      {
+        error: `Agent wallet ${wallet.address} holds ${balance?.amount ?? 0} USDC — needs ${payAmount}. Fund it via POST /api/circle/faucet.`,
+        agentWallet: wallet.address,
+      },
+      { status: 402 }
+    );
+  }
 
-  // Simulate Circle Wallet USDC transfer for milestone release
-  const txHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+  const transfer = await transferUsdc({
+    walletId: wallet.id,
+    tokenId: balance.tokenId,
+    destinationAddress: payTo,
+    amountUsdc: payAmount,
+    idempotencyKey: idempotencyKeyFor(
+      proposalId ?? `direct:${payTo}:${label}`,
+      milestoneRow?.id ?? phase
+    ),
+  });
+
+  // ---------- persistence (full-flow mode) ----------
+  if (proposal) {
+    await prisma.$transaction([
+      prisma.investmentProposal.update({
+        where: { id: proposal.id },
+        data: {
+          status: 'FUNDED',
+          escrowTxHash: transfer.txHash ?? transfer.circleTxId,
+          escrowAddress: wallet.address,
+          ...(phase === 'initial' ? { agreedAt: proposal.agreedAt ?? new Date() } : {}),
+        },
+      }),
+      prisma.project.update({
+        where: { id: proposal.projectId },
+        data: {
+          status: 'FUNDED',
+          currentFunding: { increment: payAmount },
+        },
+      }),
+      ...(milestoneRow
+        ? [
+            prisma.milestone.update({
+              where: { id: milestoneRow.id },
+              data: { status: 'RELEASED', releasedAt: new Date() },
+            }),
+          ]
+        : []),
+    ]);
+  }
 
   return NextResponse.json({
     success: true,
     release: {
-      escrowId,
-      milestoneId,
+      proposalId: proposal?.id ?? null,
+      milestoneId: milestoneRow?.id ?? null,
       status: 'released',
-      txHash,
+      amountUsdc: payAmount,
+      recipient: payTo,
+      txHash: transfer.txHash ?? null,
+      circleTxId: transfer.circleTxId,
+      explorerUrl: transfer.explorerUrl ?? null,
+      state: transfer.state,
       releasedAt: new Date().toISOString(),
       network: 'Arc Testnet',
       token: 'USDC',
     },
-    message: `Milestone payment released for ${projectName || 'project'}. Transaction settled on Arc Network.`,
+    policy: verdict,
+    agentWallet: wallet.address,
+    message: `${payAmount} USDC released for ${label} — settled on Arc, no human in the loop.`,
   });
 }
 
-async function handleCheckStatus(body: any) {
-  const { escrowId } = body;
+/** Real status: live wallet balance + policy budget + funded rows from the DB. */
+async function handleCheckStatus() {
+  const wallet = await getOrCreateAgentWallet();
+  const balance = await getUsdcBalance(wallet.id);
+  const policyState = await checkAgentPolicy({ amountUsdc: 0.01 });
+
+  const recent = await prisma.investmentProposal.findMany({
+    where: { escrowTxHash: { not: null } },
+    orderBy: { updatedAt: 'desc' },
+    take: 10,
+    select: {
+      id: true,
+      escrowTxHash: true,
+      agreedAmount: true,
+      proposedAmount: true,
+      updatedAt: true,
+      project: { select: { name: true } },
+    },
+  });
 
   return NextResponse.json({
     success: true,
     status: {
-      escrowId: escrowId || 'demo_escrow',
-      state: 'active',
-      totalLocked: 50000,
-      released: 15000,
-      remaining: 35000,
-      nextMilestone: {
-        title: 'MVP Launch',
-        amount: 10000,
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      circleWalletBalance: 35000,
+      agentWallet: { id: wallet.id, address: wallet.address, blockchain: AGENT_BLOCKCHAIN },
+      usdcBalance: balance?.amount ?? '0',
+      policy: getAgentPolicy(),
+      spentLast24hUsdc: policyState.spentLast24hUsdc,
+      fundedProposals: recent.map((p: any) => ({
+        id: p.id,
+        project: p.project?.name,
+        amount: p.agreedAmount ?? p.proposedAmount,
+        txHash: p.escrowTxHash,
+        at: p.updatedAt,
+      })),
     },
   });
 }
 
+/**
+ * Risk monitor pause: flips a flag on the proposal's terms that the policy
+ * gate enforces — after this, release attempts are denied in code, not in
+ * prose.
+ */
 async function handlePauseFunding(body: any) {
-  const { escrowId, reason } = body;
+  const { proposalId, reason } = body;
+  if (!proposalId) {
+    return NextResponse.json({ error: 'proposalId required' }, { status: 400 });
+  }
+  const proposal = await prisma.investmentProposal.findUnique({ where: { id: proposalId } });
+  if (!proposal) {
+    return NextResponse.json({ error: 'Proposal not found' }, { status: 404 });
+  }
+
+  const terms = { ...((proposal.terms as any) ?? {}), fundingPaused: true, pauseReason: reason ?? 'Risk signals detected' };
+  await prisma.investmentProposal.update({
+    where: { id: proposalId },
+    data: { terms },
+  });
 
   return NextResponse.json({
     success: true,
     pause: {
-      escrowId: escrowId || 'demo_escrow',
+      proposalId,
       status: 'paused',
-      reason: reason || 'AI agent detected risk signals — milestone delivery paused pending review',
+      reason: terms.pauseReason,
       pausedAt: new Date().toISOString(),
-      resumeConditions: [
-        'GitHub activity resumes (>10 commits/week)',
-        'Milestone deliverables submitted for review',
-        'Founder responds to status inquiry',
-      ],
     },
-    message: 'Funding paused. Circle Agent Wallet spending policy updated to block outgoing transfers.',
+    message: 'Funding paused: the spending-policy gate now denies releases for this proposal.',
   });
 }
