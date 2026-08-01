@@ -1,13 +1,14 @@
 import prisma from '../lib/db';
 async function main() {
-  const p: any = await prisma.investmentProposal.findUnique({
-    where: { id: 'cms9e3omz0007uaz0t5qxh093' },
+  const rows: any[] = await prisma.investmentProposal.findMany({
+    where: { escrowTxHash: { not: null } },
     include: { project: { include: { milestones: { orderBy: { orderIndex: 'asc' } } } } },
+    orderBy: { updatedAt: 'desc' },
   });
-  console.log('status:', p.status);
-  console.log('escrowTxHash:', p.escrowTxHash);
-  console.log('escrowAddress (agent wallet):', p.escrowAddress);
-  console.log('project:', p.project.status, '| currentFunding:', p.project.currentFunding);
-  console.log('milestones:', p.project.milestones.map((m: any) => `${m.title}:${m.status}`).join(', '));
+  for (const p of rows) {
+    console.log(`\n${p.project.name}: ${p.status} | trust ${p.project.aiTrustScore} | funded ${p.project.currentFunding} USDC`);
+    console.log(`  tx: ${p.escrowTxHash}`);
+    console.log(`  milestones: ${p.project.milestones.map((m: any) => m.title + ':' + m.status).join(', ')}`);
+  }
 }
 main().finally(() => prisma.$disconnect());
