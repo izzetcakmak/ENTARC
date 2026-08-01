@@ -19,6 +19,7 @@ import {
   Globe,
   Bot,
   Sparkles,
+  Terminal,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -35,6 +36,7 @@ const navItems: NavItem[] = [
   { label: 'Discovery', href: '/discovery', icon: Compass },
   { label: 'Portfolio', href: '/portfolio', icon: Briefcase },
   { label: 'Agent Hub', href: '/agent-hub', icon: Bot },
+  { label: 'Agent Console', href: '/agent-console', icon: Terminal },
   { label: 'Autonomous Agent', href: '/autonomous-agent', icon: Zap },
   { label: 'AI Insights', href: '/insights', icon: Brain },
   { label: 'Settings', href: '/settings', icon: Settings },
