@@ -33,11 +33,14 @@ import { checkAgentPolicy, getAgentPolicy } from '@/lib/agent-policy';
 const EVM_ADDRESS = /^0x[a-fA-F0-9]{40}$/;
 
 /**
- * Deterministic idempotency key per (proposal, milestone): a client retry of
- * the same release can never double-send, because Circle dedupes on this key.
+ * Deterministic idempotency key per (proposal, milestone, proposal-version):
+ * a retry of the same release can never double-send, because Circle dedupes on
+ * this key. The version component is the proposal's updatedAt — stable across
+ * retries of one release, but rotated whenever the proposal itself changes
+ * (e.g. a reset), so a genuinely new funding round gets a new key.
  */
-function idempotencyKeyFor(proposalId: string, milestoneKey: string): string {
-  const h = createHash('sha256').update(`entarc:${proposalId}:${milestoneKey}`).digest();
+function idempotencyKeyFor(proposalId: string, milestoneKey: string, version: string): string {
+  const h = createHash('sha256').update(`entarc:${proposalId}:${milestoneKey}:${version}`).digest();
   const b = Buffer.from(h.subarray(0, 16));
   b[6] = (b[6] & 0x0f) | 0x40; // version 4
   b[8] = (b[8] & 0x3f) | 0x80; // RFC 4122 variant
@@ -188,7 +191,8 @@ async function handleFundProposal(body: any, phase: 'initial' | 'milestone') {
     amountUsdc: payAmount,
     idempotencyKey: idempotencyKeyFor(
       proposalId ?? `direct:${payTo}:${label}`,
-      milestoneRow?.id ?? phase
+      milestoneRow?.id ?? phase,
+      proposal ? String(proposal.updatedAt.getTime()) : 'direct'
     ),
   });
 

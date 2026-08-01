@@ -36,7 +36,9 @@ export async function generateAnalysis(system: string, prompt: string): Promise<
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
           responseMimeType: 'application/json',
-          temperature: 0.4,
+          // Deterministic: the same evidence must yield the same score, because
+          // this number decides whether real money moves.
+          temperature: 0,
           maxOutputTokens: 1500,
         },
       }),
@@ -67,7 +69,7 @@ export async function generateAnalysis(system: string, prompt: string): Promise<
       ],
       response_format: { type: 'json_object' },
       max_tokens: 1500,
-      temperature: 0.4,
+      temperature: 0,
     }),
   });
   if (!res.ok) {
