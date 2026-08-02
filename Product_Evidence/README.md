@@ -5,7 +5,8 @@ Agentic Economy Prize.
 
 | File | What it shows |
 |---|---|
-| `ENTARC-product-evidence.pdf` | The full evidence pack: Gemini model/endpoint/configuration, every Gemini call with its verdict and policy outcome, the on-chain payments that followed, and screenshots of the funded run, the refused run and the block explorer. |
+| `ENTARC-product-evidence.pdf` | The full evidence pack: Gemini model/endpoint/configuration, Google's own API usage dashboard, every Gemini call with its verdict and policy outcome, the on-chain payments that followed, and screenshots of the funded run, the refused run and the block explorer. |
+| `00-gemini-api-usage-dashboard.png` | Google AI Studio usage dashboard for the key ENTARC uses: Free Tier, traffic against Gemini 3 Flash on 1-2 August 2026, 100% success rate, no errors. |
 | `agent-execution-log.json` | Machine-readable export of the same records, taken from the application database. |
 | `01-agent-funded-run.png` | Gemini scores *A NEW ONE* 88/100 → policy clears → the agent sends 1.5 USDC. |
 | `02-agent-denied-run.png` | Gemini scores *MoonVault* 0/100 → policy denies → **no transaction is created**. |
