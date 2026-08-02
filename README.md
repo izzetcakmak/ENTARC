@@ -7,7 +7,7 @@
 **The first autonomous AI agent that discovers, analyzes, and funds pre-TGE projects on Arc Network.**
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-entarc.xyz-06b6d4?style=for-the-badge)](https://entarc.xyz)
-[![Demo video](https://img.shields.io/badge/🎬_Demo_video-1m45s-8b5cf6?style=for-the-badge)](demo/entarc-demo.mp4)
+[![Demo video](https://img.shields.io/badge/🎬_Demo_video-1m45s-8b5cf6?style=for-the-badge)](https://youtu.be/J1k3T85fZ-k)
 [![Hackathon](https://img.shields.io/badge/🏆_Programmable_Money_Hackathon-Build_on_Arc-f59e0b?style=for-the-badge)](https://community.arc.io/public/events/hackathon-programmable-money-74llz8htis)
 
 </div>
@@ -28,7 +28,7 @@ Gemini due diligence  →  spending-policy gate  →  Circle transfer on Arc  �
                           · trust ≥ 70                                       milestone RELEASED
 ```
 
-Watch it in [`demo/entarc-demo.mp4`](demo/entarc-demo.mp4): one deal is denied by the policy gate, one is funded on-chain — both runs are real.
+Watch it: [**1m45s demo video**](https://youtu.be/J1k3T85fZ-k) — one deal is denied by the policy gate, one is funded on-chain. Both runs are real.
 
 ---
 
@@ -238,7 +238,7 @@ Top teams earn a place in an 8-week accelerator programme.
 ## 🔗 Links
 
 - 🌐 **Live App:** [entarc.xyz](https://entarc.xyz) — the prize flow lives at `/agent-console`
-- 🎬 **Demo video:** [`demo/entarc-demo.mp4`](demo/entarc-demo.mp4) (1m45s, narrated)
+- 🎬 **Demo video:** [youtu.be/J1k3T85fZ-k](https://youtu.be/J1k3T85fZ-k) (1m45s, narrated)
 - 🔗 **Agent wallet:** [`0xd8d4…35ad`](https://testnet.arcscan.app/address/0xd8d42a355fe806545490758cf76e9c4b6ff535ad) on Arc Testnet
 - 🎬 **Interactive Demo:** [entarc.xyz/demo](https://entarc.xyz/demo) (EN/TR)
 - 🔍 **Block Explorer:** [testnet.arcscan.app](https://testnet.arcscan.app)

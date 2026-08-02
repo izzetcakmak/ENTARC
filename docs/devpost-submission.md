@@ -28,7 +28,7 @@ gemini, google-ai-studio, circle, usdc, arc, nextjs, typescript, prisma, postgre
 |---|---|
 | Try it out | https://entarc.xyz/agent-console |
 | GitHub | https://github.com/izzetcakmak/ENTARC |
-| Demo video | *(YouTube link once uploaded — see below)* |
+| Demo video | https://youtu.be/J1k3T85fZ-k |
 | Agent wallet (block explorer) | https://testnet.arcscan.app/address/0xd8d42a355fe806545490758cf76e9c4b6ff535ad |
 | Proof tx 1 | https://testnet.arcscan.app/tx/0xe1dcb261070726772e92a0fac76f6525a827c7aa9d6586a9b57c099aca3ec0df |
 | Proof tx 2 | https://testnet.arcscan.app/tx/0x990ed73e3ee634c6ac8ad2c44ce5e802bed8006cc861db1cfdb89282b4166389 |
@@ -120,12 +120,13 @@ ENTARC — an AI agent that runs due diligence with Gemini and pays in USDC by i
 ENTARC is an autonomous venture agent: it evaluates startups with Gemini, then invests real USDC from its own Circle wallet on Arc — with no human in the approval path.
 
 In this demo:
-0:00  The gap: agents reason and act, then a human clicks "pay"
+0:00  Intro
+0:09  The gap: agents reason and act, then a human clicks "pay"
 0:23  The agent — Circle wallet, Gemini engine, spending policy
-0:41  A bad deal is DENIED by the policy gate (Gemini: 0/100)
+0:40  A bad deal is DENIED by the policy gate (Gemini: 0/100)
 0:58  A good deal is FUNDED (Gemini: 88/100) — 1.5 USDC sent autonomously
-1:18  On-chain proof: confirmed in 0.51s, fee $0.0008
-1:29  Milestone tranches, each with its own transaction
+1:17  On-chain proof: confirmed in 0.51s, fee $0.0008
+1:28  Milestone tranches, each with its own transaction
 
 Every screen and every transaction is real.
 
