@@ -686,7 +686,7 @@ export function AutonomousAgentDashboard() {
           <div className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-purple-400" />
             <h3 className="text-lg font-semibold text-white">Nanopayment Streaming</h3>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">$0.000001 min</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">PREVIEW — simulated</span>
           </div>
           {streamActive && (
             <div className="flex items-center gap-1.5">
@@ -696,7 +696,11 @@ export function AutonomousAgentDashboard() {
           )}
         </div>
 
-        <p className="text-xs text-slate-400 mb-4">Sub-cent USDC micro-payments at machine speed via Circle Agent Wallet on Arc Network. Gas-free, instant settlement.</p>
+        <p className="text-xs text-slate-400 mb-4">
+          Sub-cent USDC micro-payments at machine speed, planned on Circle nanopayments.
+          <span className="text-amber-400"> This panel simulates the stream — it does not move funds.</span>{' '}
+          For real autonomous payments see the <Link href="/agent-console" className="text-cyan-400 hover:text-cyan-300">Agent Console</Link>.
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Controls */}
@@ -789,10 +793,10 @@ export function AutonomousAgentDashboard() {
           <div className="space-y-2">
             {[
               { name: 'Agent Wallets', desc: 'Programmable USDC custody via Circle', where: '/agent-hub', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
-              { name: 'Milestone Escrow', desc: 'AI-verified milestone release', where: '#escrow', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
-              { name: 'Nanopayments', desc: 'Sub-cent streaming USDC micro-payments', where: '#nanopay', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+              { name: 'Milestone Escrow', desc: 'Real USDC tranches, policy-gated', where: '/agent-console', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+              { name: 'Nanopayments', desc: 'Sub-cent streaming USDC micro-payments', where: '#nanopay', status: 'preview', color: 'text-amber-400', dot: 'bg-amber-400' },
               { name: 'Paymaster', desc: 'Gas-free USDC (Arc Testnet native)', where: '#', status: 'native', color: 'text-cyan-400', dot: 'bg-cyan-400' },
-              { name: 'CCTP / Gateway', desc: 'Cross-chain USDC bridge (Burn→Attest→Mint)', where: '/agent-hub', status: 'live', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+              { name: 'CCTP / Gateway', desc: 'Cross-chain USDC bridge (Burn→Attest→Mint)', where: '/agent-hub', status: 'preview', color: 'text-amber-400', dot: 'bg-amber-400' },
             ].map((t) => (
               <div key={t.name} className="flex items-center justify-between rounded-lg bg-slate-800/40 border border-slate-700/50 p-3">
                 <div>
