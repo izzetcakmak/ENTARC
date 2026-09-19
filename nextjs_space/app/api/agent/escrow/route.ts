@@ -59,13 +59,13 @@ export async function POST(req: NextRequest) {
     const { action } = body;
 
     if (action === 'create-escrow') {
-      return handleFundProposal(body, 'initial', session);
+      return await handleFundProposal(body, 'initial', session);
     } else if (action === 'release-milestone') {
-      return handleFundProposal(body, 'milestone', session);
+      return await handleFundProposal(body, 'milestone', session);
     } else if (action === 'check-status') {
-      return handleCheckStatus();
+      return await handleCheckStatus();
     } else if (action === 'pause-funding') {
-      return handlePauseFunding(body);
+      return await handlePauseFunding(body);
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
