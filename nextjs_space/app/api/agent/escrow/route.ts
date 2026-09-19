@@ -16,7 +16,7 @@ import { checkAgentPolicy, getAgentPolicy } from '@/lib/agent-policy';
 /**
  * Circle Escrow — Milestone-Based Investment Escrow (REAL transfers)
  *
- * The agent wallet (Circle developer-controlled, Arc Testnet) is the escrow:
+ * The agent wallet (Circle developer-controlled, on the active Arc network) is the escrow:
  * USDC sits in it until the agent releases a tranche. Every release is a real
  * on-chain USDC transfer with a block-explorer-verifiable hash. There is no
  * human approval step — the spending policy in lib/agent-policy.ts is the
@@ -190,7 +190,7 @@ async function handleFundProposal(body: any, phase: 'initial' | 'milestone', ses
   if (!balance || Number(balance.amount) < payAmount) {
     return NextResponse.json(
       {
-        error: `Agent wallet ${wallet.address} holds ${balance?.amount ?? 0} USDC — needs ${payAmount}. Fund it via POST /api/circle/faucet.`,
+        error: `Agent wallet ${wallet.address} holds ${balance?.amount ?? 0} USDC — needs ${payAmount}. ${IS_MAINNET ? 'Fund it with real USDC (Circle Console or a bridge).' : 'Fund it via POST /api/circle/faucet.'}`,
         agentWallet: wallet.address,
       },
       { status: 402 }
