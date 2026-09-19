@@ -88,27 +88,15 @@ export function AgentHubContent() {
     setCreating(true);
     setError(null);
     try {
+      // Provision the wallet the agent itself spends from — a wallet in any
+      // other set would never be found by the escrow flow, however well funded.
       const res = await fetch('/api/circle/wallets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create-wallet-set',
-          walletSetName: `ENTARC Agent Set #${walletSets.length + 1}`,
-        }),
+        body: JSON.stringify({ action: 'ensure-agent-wallet' }),
       });
       const data = await res.json();
       if (data.success) {
-        // Create a wallet in the new set
-        const walletRes = await fetch('/api/circle/wallets', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'create-wallet',
-            walletSetId: data.walletSet.id,
-            blockchain: CIRCLE_BLOCKCHAIN,
-          }),
-        });
-        await walletRes.json();
         fetchWallets();
       } else {
         setError(data.error || 'Failed to create wallet');
