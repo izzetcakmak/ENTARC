@@ -1,10 +1,11 @@
 'use client';
 
 // MetricCards Component - Dashboard metric display cards
-// Shows TVL, Active Projects, ROI, and streaming stats
+// Real figures from /api/dashboard: escrowed capital, funded projects, releases
 
 import { GlassCard } from '@/components/shared/glass-card';
-import { useEntarcStore } from '@/store/use-entarc-store';
+import { NETWORK_LABEL } from '@/lib/arc-network';
+import { formatUsdc, type DashboardMetricsData } from '@/lib/dashboard-types';
 import { cn } from '@/lib/utils';
 import {
   Wallet,
@@ -13,7 +14,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Unlock,
-  Lock,
 } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
@@ -119,60 +119,42 @@ function useAnimatedCounter(targetValue: number, duration: number = 1000) {
   return displayValue;
 }
 
-export function MetricCards() {
-  const getDashboardMetrics = useEntarcStore((state) => state.getDashboardMetrics);
-  const metrics = getDashboardMetrics();
-
+export function MetricCards({ metrics }: { metrics: DashboardMetricsData | null }) {
   // Animated values
-  const animatedTVL = useAnimatedCounter(metrics?.tvl ?? 0, 1500);
-  const animatedROI = useAnimatedCounter(metrics?.averageROI ?? 0, 1200);
-  const animatedReleased = useAnimatedCounter(metrics?.totalReleased ?? 0, 1500);
-  const animatedLocked = useAnimatedCounter(metrics?.totalLocked ?? 0, 1500);
-
-  // Format currency
-  const formatCurrency = (value: number) => {
-    if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(2)}M`;
-    }
-    if (value >= 1000) {
-      return `$${(value / 1000).toFixed(0)}K`;
-    }
-    return `$${value.toFixed(0)}`;
-  };
+  const animatedCommitted = useAnimatedCounter(metrics?.committed ?? 0, 1500);
+  const animatedReleased = useAnimatedCounter(metrics?.released ?? 0, 1500);
+  const animatedLocked = useAnimatedCounter(metrics?.locked ?? 0, 1500);
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <MetricCard
-        title="Total Value Locked"
-        value={formatCurrency(animatedTVL)}
-        subValue="Across all investments"
+        title="Capital Committed"
+        value={formatUsdc(animatedCommitted)}
+        subValue={`USDC escrowed by the agent on ${NETWORK_LABEL}`}
         icon={Wallet}
         iconColor="bg-cyan-500"
-        trend={12.5}
       />
 
       <MetricCard
-        title="Active Projects"
-        value={String(metrics?.activeProjects ?? 0)}
-        subValue="Currently funded"
+        title="Funded Projects"
+        value={String(metrics?.fundedProjects ?? 0)}
+        subValue="With an on-chain escrow"
         icon={FolderKanban}
         iconColor="bg-violet-500"
-        trend={8.3}
       />
 
       <MetricCard
-        title="Average ROI"
-        value={`${animatedROI.toFixed(1)}%`}
-        subValue="Portfolio performance"
+        title="Avg Trust Score"
+        value={metrics?.averageTrustScore != null ? `${metrics.averageTrustScore}/100` : '—'}
+        subValue="AI score of funded projects"
         icon={TrendingUp}
         iconColor="bg-emerald-500"
-        trend={animatedROI}
       />
 
       <MetricCard
         title="Released / Locked"
-        value={formatCurrency(animatedReleased)}
-        subValue={`${formatCurrency(animatedLocked)} locked`}
+        value={formatUsdc(animatedReleased)}
+        subValue={`${formatUsdc(animatedLocked)} locked`}
         icon={Unlock}
         iconColor="bg-amber-500"
       />
