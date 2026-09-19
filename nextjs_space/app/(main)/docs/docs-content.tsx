@@ -116,17 +116,23 @@ function Faq({ q, children }: { q: string; children: React.ReactNode }) {
   );
 }
 
-export function DocsContent() {
+export function DocsContent({ publicView = false }: { publicView?: boolean }) {
   const [agent, setAgent] = useState<AgentInfo | null>(null);
   const [activeId, setActiveId] = useState('what');
 
-  // Live values, so the docs never drift from the running system.
+  // Live values, so the docs never drift from the running system. The policy
+  // endpoint is public; the wallet only comes with a signed-in session.
   useEffect(() => {
+    fetch('/api/agent/policy')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.policy && setAgent((cur) => cur ?? { wallet: null, usdc: null, engine: d.engine, policy: d.policy }))
+      .catch(() => {});
+    if (publicView) return;
     fetch('/api/agent/run')
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => d?.agent && setAgent(d.agent))
       .catch(() => {});
-  }, []);
+  }, [publicView]);
 
   // Highlight the section being read in the table of contents.
   useEffect(() => {
@@ -182,6 +188,11 @@ export function DocsContent() {
             <span className="rounded-full border border-slate-600 bg-slate-800/50 px-3 py-1 text-slate-300">
               ~8 min read
             </span>
+            {publicView && (
+              <span className="rounded-full border border-slate-600 bg-slate-800/50 px-3 py-1 text-slate-300">
+                Links into the app ask you to sign in
+              </span>
+            )}
           </div>
         </div>
       </GlassCard>
