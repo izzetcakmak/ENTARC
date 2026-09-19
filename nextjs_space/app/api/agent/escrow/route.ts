@@ -10,7 +10,7 @@ import {
   getUsdcBalance,
   transferUsdc,
 } from '@/lib/circle-client';
-import { NETWORK_LABEL, IS_MAINNET, CIRCLE_BLOCKCHAIN } from '@/lib/arc-network';
+import { NETWORK_LABEL, NETWORK_SINCE, IS_MAINNET, CIRCLE_BLOCKCHAIN } from '@/lib/arc-network';
 import { checkAgentPolicy, getAgentPolicy } from '@/lib/agent-policy';
 
 /**
@@ -268,7 +268,8 @@ async function handleCheckStatus() {
   const policyState = await checkAgentPolicy({ amountUsdc: 0.01 });
 
   const recent = await prisma.investmentProposal.findMany({
-    where: { escrowTxHash: { not: null } },
+    // On mainnet, older rows are testnet history (see NETWORK_SINCE).
+    where: { escrowTxHash: { not: null }, updatedAt: { gte: NETWORK_SINCE ?? new Date(0) } },
     orderBy: { updatedAt: 'desc' },
     take: 10,
     select: {
