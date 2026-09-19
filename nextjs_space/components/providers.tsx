@@ -2,7 +2,7 @@
 
 // Providers Component - Application-wide providers
 // Wraps the app with necessary context providers
-// Includes Web3 (Wagmi) provider for Arc Testnet
+// Includes Web3 (Wagmi) provider for Arc (mainnet / testnet)
 
 import { SessionProvider } from 'next-auth/react';
 import { ThemeProvider } from '@/components/theme-provider';

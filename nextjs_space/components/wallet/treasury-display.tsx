@@ -1,12 +1,12 @@
 'use client';
 
 // TreasuryDisplay - Shows connected wallet as Treasury
-// Displays wallet address and USDC balance on Arc Testnet
+// Displays wallet address and USDC balance on the active Arc network
 
 import { useState, useEffect } from 'react';
 import { useAccount, useBalance } from 'wagmi';
-import { arcTestnet } from '@/lib/wagmi-config';
-import { NETWORK_LABEL, explorerAddressUrl } from '@/lib/arc-network';
+import { arcChain } from '@/lib/wagmi-config';
+import { NETWORK_LABEL, NETWORK_SHORT_LABEL, explorerAddressUrl } from '@/lib/arc-network';
 import { GlassCard } from '@/components/shared/glass-card';
 import { cn } from '@/lib/utils';
 import {
@@ -32,7 +32,7 @@ export function TreasuryDisplay({ className, compact = false }: TreasuryDisplayP
   // Get native USDC balance
   const { data: balance, isLoading: isBalanceLoading } = useBalance({
     address: address,
-    chainId: arcTestnet.id,
+    chainId: arcChain.id,
   });
 
   useEffect(() => {
@@ -128,7 +128,7 @@ export function TreasuryDisplay({ className, compact = false }: TreasuryDisplayP
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-slate-400 transition-colors hover:text-cyan-400"
-                title="View on ArcScan"
+                title="View on the Arc explorer"
               >
                 <ExternalLink className="h-4 w-4" />
               </a>
@@ -162,7 +162,7 @@ export function TreasuryDisplay({ className, compact = false }: TreasuryDisplayP
           <div className="mt-1 flex items-center gap-2">
             <span className="text-lg font-bold text-white">Arc</span>
             <span className="rounded bg-cyan-500/20 px-1.5 py-0.5 text-xs text-cyan-400">
-              Testnet
+              {NETWORK_SHORT_LABEL}
             </span>
           </div>
         </div>

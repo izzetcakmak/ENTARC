@@ -1,12 +1,12 @@
 'use client';
 
-// WalletConnectButton - Connect wallet to Arc Testnet
+// WalletConnectButton - Connect wallet to the active Arc network
 // Handles MetaMask and other injected wallets
 
 import { useState, useEffect } from 'react';
 import { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi';
 import { injected } from 'wagmi/connectors';
-import { arcTestnet, USDC_CONTRACT_ADDRESS } from '@/lib/wagmi-config';
+import { arcChain, USDC_CONTRACT_ADDRESS } from '@/lib/wagmi-config';
 import { NETWORK_LABEL, explorerAddressUrl } from '@/lib/arc-network';
 import { cn } from '@/lib/utils';
 import {
@@ -41,7 +41,7 @@ export function WalletConnectButton({
   // Get native USDC balance (18 decimals)
   const { data: nativeBalance } = useBalance({
     address: address,
-    chainId: arcTestnet.id,
+    chainId: arcChain.id,
   });
 
   useEffect(() => {
@@ -81,7 +81,7 @@ export function WalletConnectButton({
 
   const handleConnect = async () => {
     try {
-      connect({ connector: injected(), chainId: arcTestnet.id });
+      connect({ connector: injected(), chainId: arcChain.id });
     } catch (err) {
       console.error('Connection error:', err);
     }
@@ -149,7 +149,7 @@ export function WalletConnectButton({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-slate-400 transition-colors hover:text-cyan-400"
-                    title="View on ArcScan"
+                    title="View on the Arc explorer"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
