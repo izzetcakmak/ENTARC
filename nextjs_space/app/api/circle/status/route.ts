@@ -38,8 +38,8 @@ export async function GET() {
       connectionError,
       features: {
         agentWallets: true,
-        nanopayments: true,
-        marketplace: true,
+        nanopayments: false, // planned — not integrated yet
+        marketplace: false, // planned — not integrated yet
         cli: true,
         skills: true,
       },
