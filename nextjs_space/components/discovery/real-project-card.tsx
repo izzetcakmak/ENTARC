@@ -1,7 +1,7 @@
 'use client';
 
 // RealProjectCard - Display real project data from APIs
-// Shows crypto projects from CoinMarketCap or GitHub repos
+// Arc ecosystem watchlist entries and GitHub repos, live figures only
 
 import { GlassCard } from '@/components/shared/glass-card';
 import { TrustScoreBadge } from '@/components/shared/trust-score-badge';
@@ -19,25 +19,22 @@ interface ArcProject {
   name: string;
   tagline: string;
   category: string;
-  stage: string;
-  trustScore: number;
-  sentiment: 'Bullish' | 'Neutral' | 'Bearish';
+  /** Agent-assigned score; null until the agent has analysed the project. */
+  trustScore: number | null;
   activityLevel: string;
   logoEmoji: string;
   metrics: {
-    githubStars: number;
-    commits30d: number;
-    contributors: number;
-    discordMembers: number;
-    arcHubVotes: number;
-    fundingTarget: number;
+    githubStars: number | null;
+    forks: number | null;
+    commits30d: number | null;
+    contributors: number | null;
+    lastPush: string | null;
   };
   contact?: {
     github?: string;
     website?: string;
   };
   tags: string[];
-  verified: boolean;
   source: string;
 }
 
@@ -81,11 +78,6 @@ function formatCompact(num: number): string {
 }
 
 export function RealProjectCard({ project }: { project: Project }) {
-  const sentimentColors = {
-    Bullish: 'text-emerald-400',
-    Neutral: 'text-amber-400',
-    Bearish: 'text-red-400',
-  };
 
   const categoryColors: Record<string, string> = {
     DeFi: 'bg-violet-500/20 text-violet-400',
@@ -111,26 +103,20 @@ export function RealProjectCard({ project }: { project: Project }) {
                   <h3 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
                     {project.name}
                   </h3>
-                  {project.verified && (
-                    <span className="px-1.5 py-0.5 text-[10px] rounded bg-emerald-500/20 text-emerald-400 font-medium">
-                      ✓ Verified
-                    </span>
-                  )}
                 </div>
                 <p className="text-sm text-slate-400">{project.tagline}</p>
               </div>
             </div>
-            <TrustScoreBadge score={project.trustScore} size="sm" />
-          </div>
-
-          {/* Stage Badge */}
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-1 rounded-md text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-              🚀 {project.stage}
-            </span>
-            <span className={cn('text-xs', sentimentColors[project.sentiment])}>
-              {project.sentiment}
-            </span>
+            {project.trustScore != null ? (
+              <TrustScoreBadge score={project.trustScore} size="sm" />
+            ) : (
+              <span
+                className="rounded-md border border-slate-700 px-2 py-1 text-[10px] font-medium text-slate-400"
+                title="The agent has not analysed this project yet"
+              >
+                Not analysed
+              </span>
+            )}
           </div>
 
           {/* Metrics */}
@@ -139,19 +125,17 @@ export function RealProjectCard({ project }: { project: Project }) {
               <p className="text-xs text-slate-500">GitHub</p>
               <p className="text-sm font-semibold text-white flex items-center justify-center gap-1">
                 <Star className="h-3 w-3 text-amber-400" />
-                {formatCompact(project.metrics.githubStars)}
+                {project.metrics.githubStars != null ? formatCompact(project.metrics.githubStars) : '—'}
               </p>
             </div>
             <div className="rounded-lg bg-slate-800/30 p-2 text-center">
-              <p className="text-xs text-slate-500">Discord</p>
-              <p className="text-sm font-semibold text-white">
-                {formatCompact(project.metrics.discordMembers)}
-              </p>
+              <p className="text-xs text-slate-500">Forks</p>
+              <p className="text-sm font-semibold text-white">{project.metrics.forks ?? '—'}</p>
             </div>
             <div className="rounded-lg bg-slate-800/30 p-2 text-center">
-              <p className="text-xs text-slate-500">Arc Votes</p>
+              <p className="text-xs text-slate-500">Contributors</p>
               <p className="text-sm font-semibold text-cyan-400">
-                {project.metrics.arcHubVotes}
+                {project.metrics.contributors ?? '—'}
               </p>
             </div>
           </div>
@@ -161,7 +145,9 @@ export function RealProjectCard({ project }: { project: Project }) {
             <div className="flex items-center gap-2">
               <GitFork className="h-4 w-4 text-slate-400" />
               <span className="text-xs text-slate-400">
-                {project.metrics.commits30d} commits (30d)
+                {project.metrics.commits30d ?? '—'} commits (30d)
+                {project.metrics.lastPush &&
+                  ` · last push ${new Date(project.metrics.lastPush).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`}
               </span>
             </div>
             <div className="flex items-center gap-1">
@@ -230,7 +216,12 @@ export function RealProjectCard({ project }: { project: Project }) {
                 <p className="text-sm text-slate-400">{project.owner.name}</p>
               </div>
             </div>
-            <TrustScoreBadge score={project.trustScore} size="sm" />
+            <span
+              className="rounded-md border border-slate-700 px-2 py-1 text-[10px] font-medium text-slate-300"
+              title="Computed from GitHub stars, forks and recency — not an agent trust score"
+            >
+              Activity {project.trustScore}
+            </span>
           </div>
 
           {/* Description */}
