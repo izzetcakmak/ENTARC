@@ -1,0 +1,47 @@
+{
+  "exportedAt": "2026-08-02T21:42:53.256Z",
+  "engine": "gemini-3-flash-preview (temperature 0, JSON-forced)",
+  "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+  "agentWallet": "0xd8d42a355fe806545490758cf76e9c4b6ff535ad",
+  "network": "Arc Testnet (chain 5042002)",
+  "geminiCalls": [
+    {
+      "at": "2026-08-01T22:48:34.054Z",
+      "project": "Morsu",
+      "trustScore": 68,
+      "recommendation": "BUY",
+      "riskLevel": "MEDIUM",
+      "summary": "Morsu demonstrates significant technical output with over 500 commits and a functional live explorer for the Walrus storage protocol. While social proof is currently low, the project fills a critical infrastructure gap for the Sui ecosystem at a negligible funding cost.",
+      "policyOutcome": "below threshold (70) — payment denied"
+    },
+    {
+      "at": "2026-08-01T23:15:13.624Z",
+      "project": "MoonVault",
+      "trustScore": 0,
+      "recommendation": "AVOID",
+      "riskLevel": "HIGH",
+      "summary": "MoonVault exhibits multiple critical red flags, including claims of 'guaranteed' 100x returns and 'zero risk,' which are fundamentally impossible in DeFi. With zero public code, no audit, and no verifiable infrastructure, the project presents as a high-probability fraudulent scheme.",
+      "policyOutcome": "below threshold (70) — payment denied"
+    },
+    {
+      "at": "2026-08-01T23:15:35.532Z",
+      "project": "A NEW ONE",
+      "trustScore": 88,
+      "recommendation": "STRONG_BUY",
+      "riskLevel": "MEDIUM",
+      "summary": "A NEW ONE is a technically robust memecoin launchpad on the Arc L1, featuring significant gas optimizations and a rug-proof liquidity model. With 340 commits and a functional testnet deployment, it demonstrates high execution capability for a niche ecosystem.",
+      "policyOutcome": "cleared threshold (70)"
+    }
+  ],
+  "payments": [
+    {
+      "at": "2026-08-01T23:28:03.846Z",
+      "project": "A NEW ONE",
+      "trustScore": 88,
+      "amountUsdc": 3,
+      "txHash": "0x990ed73e3ee634c6ac8ad2c44ce5e802bed8006cc861db1cfdb89282b4166389",
+      "explorer": "https://testnet.arcscan.app/tx/0x990ed73e3ee634c6ac8ad2c44ce5e802bed8006cc861db1cfdb89282b4166389",
+      "fromWallet": "0xd8d42a355fe806545490758cf76e9c4b6ff535ad"
+    }
+  ]
+}

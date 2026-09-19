@@ -1,0 +1,32 @@
+﻿,Build with Gemini XPRIZE,,,,,
+,PROFIT & LOSS STATEMENT,,,,,
+,"ENTARC - The Autonomous VC Agent | Izzet Cakmak (individual entrant, no legal entity)",,,,,
+,,,,,,
+,Program Period: May 19 - August 17,,,Currency:,USD,
+,,,,,,
+,Description,May,June,July,August,Full 90 Days
+,REVENUE,,,,,
+,Independent Sales (ie. sales of product or service),0,0,0,0,0
+,Related Party Revenue (ie. see Rules),0,0,0,0,0
+,TOTAL REVENUE,0,0,0,0,0
+,,,,,,
+,EXPENSES,,,,,
+,COGS,,,,,
+,Personnel,0,0,0,0,0
+,Software Subscriptions,0,0,0,0,0
+,Tokens,0,0,0,0,0
+,SG&A,,,,,
+,Personnel ,0,0,0,0,0
+,Software Subscriptions,0,80,80,80,240
+,Tokens,0,0,0,0,0
+,Other Expenses ,,,,,
+,Other expenses (see Legend),0,0,0,0,0
+,TOTAL EXPENSES,0,80,80,80,240
+,,,,,,
+,PROFIT (LOSS),0,-80,-80,-80,-240
+,,,,,,
+,NOTES,,,,,
+,"SG&A / Software Subscriptions: AI development tooling (Claude subscription) used to build the agent - $80 per month for June, July and August.",,,,,
+,Revenue is $0: during the period the agent deployed capital (1.5 USDC and 0.9 USDC sent autonomously on Arc) rather than collecting fees. No payment processor is connected and no customer has been invoiced.,,,,,
+,"Infrastructure is $0: Gemini API free tier, Circle developer sandbox and Arc Testnet. The agent's own on-chain fees total approximately $0.0016 in valueless testnet USDC.",,,,,
+,"Cash basis. Prepared by Izzet Cakmak, individual entrant, Turkiye.",,,,,
