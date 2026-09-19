@@ -54,7 +54,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen',
+        'fixed left-0 top-0 z-40 flex h-screen flex-col',
         'bg-slate-950/80 backdrop-blur-xl',
         'border-r border-slate-800/50',
         'transition-all duration-300 ease-in-out',
@@ -62,7 +62,7 @@ export function Sidebar() {
       )}
     >
       {/* Logo Section */}
-      <div className="flex h-16 items-center justify-between border-b border-slate-800/50 px-4">
+      <div className="flex h-16 flex-shrink-0 items-center justify-between border-b border-slate-800/50 px-4">
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25">
             <Zap className="h-5 w-5 text-white" />
@@ -87,7 +87,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-1 overflow-y-auto p-3 pb-56" style={{ maxHeight: 'calc(100vh - 4rem)' }}>
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
           const Icon = item.icon;
@@ -152,7 +152,7 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Section */}
-      <div className="absolute bottom-0 left-0 right-0 border-t border-slate-800/50 p-3">
+      <div className="flex-shrink-0 border-t border-slate-800/50 p-3">
         {/* Active network */}
         <div
           className={cn(
