@@ -62,6 +62,13 @@ export async function POST(req: NextRequest) {
     const { getCircleClient } = await import('@/lib/circle-client');
     const client = getCircleClient();
 
+    // The one wallet the agent actually spends from (see getOrCreateAgentWallet).
+    if (action === 'ensure-agent-wallet') {
+      const { getOrCreateAgentWallet } = await import('@/lib/circle-client');
+      const wallet = await getOrCreateAgentWallet();
+      return NextResponse.json({ success: true, wallet });
+    }
+
     if (action === 'create-wallet-set') {
       const res = await client.createWalletSet({
         name: walletSetName || 'ENTARC Agent Wallet Set',
