@@ -10,8 +10,14 @@ import { useSession } from 'next-auth/react';
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
+  '/docs': 'How It Works',
+  '/deal-flow': 'Deal Flow',
+  '/agent-hub': 'Agent Hub',
+  '/agent-console': 'Agent Console',
+  '/autonomous-agent': 'Autonomous Agent',
+  '/submit-project': 'Submit Project',
   '/discovery': 'Project Discovery',
-  '/portfolio': 'Portfolio Management',
+  '/portfolio': 'Portfolio',
   '/insights': 'AI Insights',
   '/settings': 'Settings',
 };
@@ -22,9 +28,6 @@ export function Header() {
 
   // Get page title - handle project detail pages
   const getPageTitle = () => {
-    if (pathname?.startsWith('/projects/')) {
-      return 'Project Details';
-    }
     return pageTitles[pathname ?? ''] ?? 'ENTARC';
   };
 

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
+  BookOpen,
   Compass,
   Briefcase,
   Brain,
@@ -33,6 +34,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'How It Works', href: '/docs', icon: BookOpen },
   { label: 'Deal Flow', href: '/deal-flow', icon: Sparkles },
   { label: 'Discovery', href: '/discovery', icon: Compass },
   { label: 'Portfolio', href: '/portfolio', icon: Briefcase },
