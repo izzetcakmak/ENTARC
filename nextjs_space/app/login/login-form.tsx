@@ -289,8 +289,14 @@ export function LoginForm() {
             </button>
           </form>
 
+          <p className="mt-6 text-center text-sm">
+            <a href="/how-it-works" className="text-cyan-400 transition-colors hover:text-cyan-300">
+              New here? See how ENTARC works →
+            </a>
+          </p>
+
           {/* Footer */}
-          <p className="mt-6 text-center text-xs text-slate-500">
+          <p className="mt-4 text-center text-xs text-slate-500">
             By continuing, you agree to ENTARC&apos;s Terms of Service and Privacy Policy
           </p>
         </div>
