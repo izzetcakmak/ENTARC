@@ -23,3 +23,7 @@ out
 .env
 nextjs_space/.env
 nextjs_space/.env
+
+# Circle entity-secret recovery files — never commit
+recovery_file*.dat
+**/recovery_file*.dat

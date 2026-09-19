@@ -45,3 +45,7 @@ prisma/*.db-journal
 # System
 .abacus.donotdelete
 Thumbs.db
+
+# Circle entity-secret recovery files — never commit
+recovery_file*.dat
+**/recovery_file*.dat
