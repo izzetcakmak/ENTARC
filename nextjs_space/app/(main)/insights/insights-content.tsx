@@ -1,7 +1,7 @@
 'use client';
 
-// InsightsContent - Real Arc Ecosystem AI Insights
-// Fetches real projects and generates AI analysis
+// InsightsContent - what the agent actually knows
+// Agent analyses come from the database; watchlist activity is live GitHub data.
 
 import { GlassCard } from '@/components/shared/glass-card';
 import { useEffect, useState, useCallback } from 'react';
@@ -17,53 +17,75 @@ import {
   Github,
   RefreshCw,
   Loader2,
-  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
-interface ArcProject {
+interface WatchlistProject {
   id: string;
   name: string;
   tagline: string;
-  category: string;
-  stage: string;
-  trustScore: number;
-  sentiment: 'Bullish' | 'Neutral' | 'Bearish';
-  activityLevel: string;
   logoEmoji: string;
+  trustScore: number | null;
+  activityLevel: string;
   metrics: {
-    githubStars: number;
-    commits30d: number;
-    discordMembers: number;
-    arcHubVotes: number;
-    fundingTarget: number;
+    githubStars: number | null;
+    commits30d: number | null;
+    lastPush: string | null;
   };
-  contact?: {
-    github?: string;
-    website?: string;
-  };
-  tags: string[];
-  verified: boolean;
+  contact?: { github?: string; website?: string };
+}
+
+interface AnalysedProject {
+  id: string;
+  name: string;
+  tagline: string;
+  logoEmoji: string;
+  aiTrustScore: number | null;
+  riskLevel: string;
+  status: string;
+  aiAnalysis: { recommendation?: string; summary?: string } | null;
+}
+
+const DORMANT_DAYS = 90;
+
+const recommendationColors: Record<string, string> = {
+  STRONG_BUY: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  BUY: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+  HOLD: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  AVOID: 'bg-red-500/20 text-red-400 border-red-500/30',
+};
+
+function daysSince(iso: string | null): number | null {
+  if (!iso) return null;
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
 }
 
 export function InsightsContent() {
   const [mounted, setMounted] = useState(false);
-  const [projects, setProjects] = useState<ArcProject[]>([]);
+  const [watchlist, setWatchlist] = useState<WatchlistProject[]>([]);
+  const [analysed, setAnalysed] = useState<AnalysedProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchProjects = useCallback(async (isRefresh = false) => {
+  const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
-    
+
     try {
-      const response = await fetch('/api/discovery/arc-ecosystem?type=pre-tge&limit=20');
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data.projects || []);
-      }
+      const [eco, approved, funded] = await Promise.all([
+        fetch('/api/discovery/arc-ecosystem?limit=20').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/projects?status=APPROVED').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/projects?status=FUNDED').then((r) => (r.ok ? r.json() : null)),
+      ]);
+      setWatchlist(eco?.projects ?? []);
+      setAnalysed(
+        [...(approved?.projects ?? []), ...(funded?.projects ?? [])]
+          .filter((p: AnalysedProject) => p.aiTrustScore != null)
+          .sort((a: AnalysedProject, b: AnalysedProject) => (b.aiTrustScore ?? 0) - (a.aiTrustScore ?? 0))
+      );
     } catch (error) {
-      console.error('Failed to fetch projects:', error);
+      console.error('Failed to fetch insights:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -72,84 +94,59 @@ export function InsightsContent() {
 
   useEffect(() => {
     setMounted(true);
-    fetchProjects();
-  }, [fetchProjects]);
+    fetchData();
+  }, [fetchData]);
 
   if (!mounted || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-          <span className="text-slate-400">Loading Arc Ecosystem insights...</span>
+          <span className="text-slate-400">Loading insights...</span>
         </div>
       </div>
     );
   }
 
-  // Generate insights from real Arc Ecosystem data
-  const totalProjects = projects.length;
-  const avgTrustScore = totalProjects > 0
-    ? projects.reduce((sum, p) => sum + p.trustScore, 0) / totalProjects
-    : 0;
-  const highTrustProjects = projects.filter((p) => p.trustScore >= 80).length;
-  const bullishProjects = projects.filter((p) => p.sentiment === 'Bullish').length;
-  const verifiedProjects = projects.filter((p) => p.verified).length;
-  const highActivityProjects = projects.filter((p) => p.activityLevel === 'High').length;
+  const activeRepos = watchlist.filter((p) => (p.metrics.commits30d ?? 0) > 0).length;
+  const dormant = watchlist.filter((p) => (daysSince(p.metrics.lastPush) ?? 0) > DORMANT_DAYS);
+  const highTrust = analysed.filter((p) => (p.aiTrustScore ?? 0) >= 70).length;
+  const avgTrust = analysed.length
+    ? analysed.reduce((sum, p) => sum + (p.aiTrustScore ?? 0), 0) / analysed.length
+    : null;
+  const totalStars = watchlist.reduce((sum, p) => sum + (p.metrics.githubStars ?? 0), 0);
+  const totalCommits = watchlist.reduce((sum, p) => sum + (p.metrics.commits30d ?? 0), 0);
 
   const insights = [
     {
       icon: Shield,
-      title: 'Verified Projects',
-      description: `${verifiedProjects} of ${totalProjects} projects verified on Arc Hub`,
+      title: 'Analysed by the Agent',
+      description: `${analysed.length} project${analysed.length === 1 ? '' : 's'} with a due-diligence score`,
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-500/10',
     },
     {
-      icon: TrendingUp,
-      title: 'Bullish Sentiment',
-      description: `${bullishProjects} projects with bullish market sentiment`,
-      color: 'text-cyan-400',
-      bgColor: 'bg-cyan-500/10',
-    },
-    {
       icon: Target,
-      title: 'High Trust Projects',
-      description: `${highTrustProjects} projects with trust score above 80`,
+      title: 'Fundable',
+      description: `${highTrust} clear the agent's trust threshold (≥ 70)`,
       color: 'text-violet-400',
       bgColor: 'bg-violet-500/10',
     },
     {
       icon: Zap,
-      title: 'High Activity',
-      description: `${highActivityProjects} projects with high development activity`,
+      title: 'Active Repositories',
+      description: `${activeRepos} of ${watchlist.length} watchlist repos had commits in the last 30 days`,
       color: 'text-amber-400',
       bgColor: 'bg-amber-500/10',
     },
+    {
+      icon: AlertTriangle,
+      title: 'Dormant',
+      description: `${dormant.length} watchlist repos with no push in ${DORMANT_DAYS}+ days`,
+      color: 'text-cyan-400',
+      bgColor: 'bg-cyan-500/10',
+    },
   ];
-
-  // Top recommendations - sorted by trust score
-  const topRecommendations = projects
-    .filter((p) => p.trustScore >= 70)
-    .slice(0, 5);
-
-  // Risk alerts - lower score or neutral/bearish sentiment
-  const riskAlerts = projects
-    .filter((p) => p.trustScore < 70 || p.sentiment !== 'Bullish')
-    .slice(0, 3);
-
-  const getRecommendation = (project: ArcProject) => {
-    if (project.trustScore >= 85 && project.sentiment === 'Bullish') return 'STRONG_BUY';
-    if (project.trustScore >= 75 && project.sentiment === 'Bullish') return 'BUY';
-    if (project.trustScore >= 65) return 'HOLD';
-    return 'WATCH';
-  };
-
-  const recommendationColors: Record<string, string> = {
-    'STRONG_BUY': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    'BUY': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-    'HOLD': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    'WATCH': 'bg-slate-500/20 text-slate-400 border-slate-500/30',
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -161,19 +158,14 @@ export function InsightsContent() {
               <Brain className="h-7 w-7 text-violet-400" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-white">AI Insights</h1>
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                  LIVE
-                </span>
-              </div>
+              <h1 className="text-2xl font-bold text-white">AI Insights</h1>
               <p className="text-slate-400">
-                Real-time analysis of Arc Ecosystem Pre-TGE projects
+                The agent&apos;s own analyses, plus live GitHub activity of the Arc watchlist
               </p>
             </div>
           </div>
           <button
-            onClick={() => fetchProjects(true)}
+            onClick={() => fetchData(true)}
             disabled={refreshing}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 transition-colors disabled:opacity-50"
           >
@@ -203,150 +195,132 @@ export function InsightsContent() {
         })}
       </div>
 
-      {/* Top Recommendations */}
+      {/* Agent analyses */}
       <GlassCard>
         <div className="mb-4 flex items-center gap-2">
           <Lightbulb className="h-5 w-5 text-amber-400" />
-          <h2 className="text-lg font-semibold text-white">Top Recommendations</h2>
-          <span className="text-xs text-slate-500 ml-2">Based on Trust Score & Sentiment</span>
+          <h2 className="text-lg font-semibold text-white">Agent Analyses</h2>
+          <span className="text-xs text-slate-500 ml-2">Scores and recommendations written by the agent</span>
         </div>
         <div className="space-y-4">
-          {topRecommendations.map((project) => {
-            const rec = getRecommendation(project);
+          {analysed.length === 0 && (
+            <p className="rounded-xl bg-slate-800/30 p-4 text-sm text-slate-400">
+              The agent has not analysed any project yet.{' '}
+              <Link href="/submit-project" className="text-cyan-400 hover:text-cyan-300">
+                Submit a project
+              </Link>{' '}
+              and it will be scored here.
+            </p>
+          )}
+          {analysed.map((project) => {
+            const rec = project.aiAnalysis?.recommendation;
             return (
-              <div
-                key={project.id}
-                className="rounded-xl border border-slate-700/30 bg-slate-800/30 p-4"
-              >
-                <div className="flex items-start justify-between">
+              <div key={project.id} className="rounded-xl border border-slate-700/30 bg-slate-800/30 p-4">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{project.logoEmoji}</span>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-white">{project.name}</p>
-                        {project.verified && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">✓</span>
-                        )}
-                      </div>
+                      <p className="font-medium text-white">{project.name}</p>
                       <p className="text-sm text-slate-400">{project.tagline}</p>
                     </div>
                   </div>
-                  <span className={cn('rounded-full px-3 py-1 text-xs font-medium border', recommendationColors[rec])}>
-                    {rec.replace('_', ' ')}
-                  </span>
+                  {rec && (
+                    <span
+                      className={cn(
+                        'rounded-full px-3 py-1 text-xs font-medium border',
+                        recommendationColors[rec] ?? 'bg-slate-500/20 text-slate-400 border-slate-500/30'
+                      )}
+                    >
+                      {rec.replace('_', ' ')}
+                    </span>
+                  )}
                 </div>
-                
-                {/* Metrics */}
+                {project.aiAnalysis?.summary && (
+                  <p className="mt-3 text-sm text-slate-300">{project.aiAnalysis.summary}</p>
+                )}
                 <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
                   <span className="flex items-center gap-1">
                     <Shield className="h-3 w-3 text-cyan-400" />
-                    Trust: {project.trustScore}
+                    Trust: {project.aiTrustScore}/100
                   </span>
-                  <span>⭐ {project.metrics.githubStars} stars</span>
-                  <span>💬 {project.metrics.discordMembers.toLocaleString()} Discord</span>
-                  <span>🗳️ {project.metrics.arcHubVotes} votes</span>
+                  <span>Risk: {project.riskLevel}</span>
+                  <span>Status: {project.status.replace('_', ' ')}</span>
                 </div>
-
-                {/* Contact Links */}
-                {project.contact && (
-                  <div className="mt-3 pt-3 border-t border-slate-700/50 flex items-center gap-2">
-                    <span className="text-xs text-slate-500 mr-2">Contact:</span>
-                    {project.contact.website && (
-                      <a
-                        href={project.contact.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all text-xs"
-                      >
-                        <Globe className="h-3 w-3" />
-                        Website
-                      </a>
-                    )}
-                    {project.contact.github && (
-                      <a
-                        href={project.contact.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/50 text-slate-400 hover:text-cyan-400 hover:bg-slate-700/50 transition-all text-xs"
-                      >
-                        <Github className="h-3 w-3" />
-                        GitHub
-                      </a>
-                    )}
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
       </GlassCard>
 
-      {/* Risk Alerts */}
+      {/* Watchlist activity */}
       <GlassCard>
         <div className="mb-4 flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-amber-400" />
-          <h2 className="text-lg font-semibold text-white">Projects to Watch</h2>
+          <Github className="h-5 w-5 text-slate-300" />
+          <h2 className="text-lg font-semibold text-white">Watchlist Activity</h2>
+          <span className="text-xs text-slate-500 ml-2">Live from GitHub</span>
         </div>
         <div className="space-y-3">
-          {riskAlerts.length > 0 ? riskAlerts.map((project) => (
-            <div
-              key={project.id}
-              className="flex items-center justify-between rounded-lg bg-amber-500/5 border border-amber-500/20 p-3"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{project.logoEmoji}</span>
-                <div>
-                  <p className="font-medium text-white">{project.name}</p>
-                  <p className="text-xs text-slate-400">
-                    {project.sentiment !== 'Bullish' ? `${project.sentiment} sentiment` : `Trust score: ${project.trustScore}`}
-                  </p>
+          {watchlist.map((project) => {
+            const idle = daysSince(project.metrics.lastPush);
+            const isDormant = (idle ?? 0) > DORMANT_DAYS;
+            return (
+              <div
+                key={project.id}
+                className={cn(
+                  'flex items-center justify-between rounded-lg border p-3',
+                  isDormant ? 'bg-amber-500/5 border-amber-500/20' : 'bg-slate-800/30 border-slate-700/30'
+                )}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-xl">{project.logoEmoji}</span>
+                  <div className="min-w-0">
+                    <p className="font-medium text-white truncate">{project.name}</p>
+                    <p className="text-xs text-slate-400">
+                      ⭐ {project.metrics.githubStars ?? '—'} · {project.metrics.commits30d ?? '—'} commits (30d)
+                      {idle != null && ` · last push ${idle}d ago`}
+                      {isDormant && ' · dormant'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {project.contact?.website && (
+                    <a href={project.contact.website} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30">
+                      <Globe className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  {project.contact?.github && (
+                    <a href={project.contact.github} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded bg-slate-800/50 text-slate-400 hover:text-cyan-400">
+                      <Github className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  <span className="text-xs px-2 py-1 rounded text-slate-400">
+                    {project.trustScore != null ? `Trust ${project.trustScore}` : 'Not analysed'}
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {project.contact?.website && (
-                  <a href={project.contact.website} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30">
-                    <Globe className="h-3.5 w-3.5" />
-                  </a>
-                )}
-                {project.contact?.github && (
-                  <a href={project.contact.github} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded bg-slate-800/50 text-slate-400 hover:text-cyan-400">
-                    <Github className="h-3.5 w-3.5" />
-                  </a>
-                )}
-                <span className={cn(
-                  'text-xs px-2 py-1 rounded',
-                  project.sentiment === 'Bullish' ? 'text-emerald-400' : project.sentiment === 'Neutral' ? 'text-amber-400' : 'text-red-400'
-                )}>
-                  {project.trustScore}
-                </span>
-              </div>
-            </div>
-          )) : (
-            <p className="text-center text-sm text-slate-500 py-4">
-              All projects are performing well
-            </p>
-          )}
+            );
+          })}
         </div>
       </GlassCard>
 
-      {/* Market Overview */}
+      {/* Overview */}
       <GlassCard>
         <div className="mb-4 flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-cyan-400" />
-          <h2 className="text-lg font-semibold text-white">Market Overview</h2>
+          <h2 className="text-lg font-semibold text-white">Overview</h2>
         </div>
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
-            <p className="text-2xl font-bold text-white">{avgTrustScore.toFixed(1)}</p>
-            <p className="text-sm text-slate-400">Avg Trust Score</p>
+            <p className="text-2xl font-bold text-white">{avgTrust != null ? avgTrust.toFixed(1) : '—'}</p>
+            <p className="text-sm text-slate-400">Avg Trust Score (analysed projects)</p>
           </div>
           <div className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
-            <p className="text-2xl font-bold text-white">${(projects.reduce((sum, p) => sum + p.metrics.fundingTarget, 0) / 1000000).toFixed(1)}M</p>
-            <p className="text-sm text-slate-400">Total Funding Target</p>
+            <p className="text-2xl font-bold text-white">{totalCommits.toLocaleString()}</p>
+            <p className="text-sm text-slate-400">Watchlist Commits (30d)</p>
           </div>
           <div className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/30">
-            <p className="text-2xl font-bold text-white">{projects.reduce((sum, p) => sum + p.metrics.githubStars, 0).toLocaleString()}</p>
-            <p className="text-sm text-slate-400">Total GitHub Stars</p>
+            <p className="text-2xl font-bold text-white">{totalStars.toLocaleString()}</p>
+            <p className="text-sm text-slate-400">Watchlist GitHub Stars</p>
           </div>
         </div>
       </GlassCard>
