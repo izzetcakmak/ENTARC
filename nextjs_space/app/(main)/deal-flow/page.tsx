@@ -1,7 +1,7 @@
-// Deal Flow Engine Page
-// AI-powered recommendation pipeline for discovering high-potential Web3 startups
+// Deal Flow Page
+// Real pipeline: submitted projects, proposals and funded deals
 
-import DealFlowContent from './deal-flow-content';
+import { DealFlowContent } from './deal-flow-content';
 
 export default function DealFlowPage() {
   return <DealFlowContent />;

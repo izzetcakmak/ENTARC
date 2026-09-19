@@ -1,563 +1,402 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { GlassCard } from '@/components/shared/glass-card';
-import { cn } from '@/lib/utils';
+// DealFlowContent - the real investment pipeline
+// Projects and proposals come from the database; settlement happens in the Agent Console.
+
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import {
-  Flame,
-  TrendingUp,
-  Star,
-  Clock,
-  Filter,
-  ExternalLink,
+  Target,
+  RefreshCw,
   Github,
   Globe,
-  Zap,
   Shield,
-  ShieldCheck,
-  ShieldAlert,
-  BarChart3,
-  Users,
-  GitCommit,
-  MessageCircle,
-  ChevronDown,
-  ChevronUp,
-  Sparkles,
-  Target,
-  ArrowRight,
-  Activity,
-  Layers,
-  RefreshCw,
+  ExternalLink,
+  CheckCircle2,
+  XCircle,
+  Terminal,
+  FileText,
+  Inbox,
+  Send,
 } from 'lucide-react';
+import { GlassCard } from '@/components/shared/glass-card';
+import { InvestmentModal } from '@/components/proposals/investment-modal';
+import { cn } from '@/lib/utils';
+import { NETWORK_LABEL, explorerTxUrl } from '@/lib/arc-network';
+import { formatUsdc } from '@/lib/dashboard-types';
 
-interface Deal {
+interface DealProject {
   id: string;
   name: string;
   tagline: string;
-  description: string;
   category: string;
-  stage: string;
-  trustScore: number;
-  matchScore: number;
-  matchReasons: string[];
-  sentiment: string;
-  activityLevel: string;
-  trendingScore: number;
-  riskLevel: 'Low' | 'Medium' | 'High';
-  github: { stars: number; commits30d: number; contributors: number; url: string };
-  social: { mentions: number; sentiment: number; growth7d: number };
-  funding: { raised: number; target: number; backers: number };
-  tags: string[];
-  signals: { github: number; social: number; onchain: number; market: number; sentiment: number };
-  highlights: string[];
-  contact: { github?: string; website?: string };
-  addedAt: string;
-  hotDeal: boolean;
+  logoEmoji: string;
+  githubUrl: string | null;
+  websiteUrl: string | null;
+  fundingGoal: number;
+  currentFunding: number;
+  aiTrustScore: number | null;
+  riskLevel: string;
+  status: string;
+  founder: { id: string; name: string | null; walletAddress: string | null };
+  milestones: { id: string; title: string; percentage: number; status: string }[];
+  _count: { proposals: number };
 }
 
-interface Summary {
-  totalDeals: number;
-  hotDeals: number;
-  avgTrustScore: number;
-  topCategory: string;
-  lastUpdated: string;
+interface DealProposal {
+  id: string;
+  status: string;
+  proposedAmount: number;
+  counterAmount: number | null;
+  agreedAmount: number | null;
+  escrowTxHash: string | null;
+  createdAt: string;
+  project: { id: string; name: string; logoEmoji: string; aiTrustScore: number | null };
+  investor: { id: string; name: string | null };
+  founder: { id: string; name: string | null };
 }
 
-const SECTORS = ['AI/ML', 'Infrastructure', 'DeFi', 'Payments', 'Governance', 'Security', 'NFT', 'Social'];
-const SORT_OPTIONS = [
-  { value: 'match', label: 'Best Match', icon: Target },
-  { value: 'trust', label: 'Trust Score', icon: ShieldCheck },
-  { value: 'trending', label: 'Trending', icon: TrendingUp },
-  { value: 'newest', label: 'Newest', icon: Clock },
-];
+const TX_HASH = /^0x[a-fA-F0-9]{64}$/;
 
-function SignalBar({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-slate-400 w-16 shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
-        <div
-          className={cn('h-full rounded-full transition-all duration-700', color)}
-          style={{ width: `${value}%` }}
-        />
-      </div>
-      <span className="text-xs font-mono text-slate-300 w-8 text-right">{value}</span>
-    </div>
-  );
+const statusColors: Record<string, string> = {
+  PENDING: 'bg-amber-500/20 text-amber-400',
+  COUNTERED: 'bg-violet-500/20 text-violet-400',
+  ACCEPTED: 'bg-cyan-500/20 text-cyan-400',
+  FUNDED: 'bg-emerald-500/20 text-emerald-400',
+  COMPLETED: 'bg-emerald-500/20 text-emerald-400',
+  REJECTED: 'bg-red-500/20 text-red-400',
+  EXPIRED: 'bg-slate-500/20 text-slate-400',
+  DISPUTED: 'bg-red-500/20 text-red-400',
+};
+
+async function getJson(url: string) {
+  const res = await fetch(url);
+  return res.ok ? res.json() : null;
 }
 
-function DealCard({ deal, index }: { deal: Deal; index: number }) {
-  const [expanded, setExpanded] = useState(false);
+export function DealFlowContent() {
+  const { data: session } = useSession() || {};
+  const userId = (session?.user as { id?: string } | undefined)?.id;
 
-  const riskColor = deal.riskLevel === 'Low' ? 'text-emerald-400' : deal.riskLevel === 'Medium' ? 'text-amber-400' : 'text-red-400';
-  const riskBg = deal.riskLevel === 'Low' ? 'bg-emerald-400/10' : deal.riskLevel === 'Medium' ? 'bg-amber-400/10' : 'bg-red-400/10';
-  const trustColor = deal.trustScore >= 85 ? 'text-emerald-400' : deal.trustScore >= 75 ? 'text-cyan-400' : 'text-amber-400';
-  const trustBg = deal.trustScore >= 85 ? 'bg-emerald-400/10 border-emerald-400/20' : deal.trustScore >= 75 ? 'bg-cyan-400/10 border-cyan-400/20' : 'bg-amber-400/10 border-amber-400/20';
-
-  return (
-    <div
-      className="animate-fade-in"
-      style={{ animationDelay: `${index * 80}ms` }}
-    >
-      <GlassCard hover className="relative overflow-hidden">
-        {/* Hot Deal Badge */}
-        {deal.hotDeal && (
-          <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-orange-500/20 border border-orange-500/30">
-            <Flame className="h-3 w-3 text-orange-400" />
-            <span className="text-xs font-bold text-orange-400">HOT</span>
-          </div>
-        )}
-
-        <div className="p-5">
-          {/* Header */}
-          <div className="flex items-start gap-4 mb-4">
-            {/* Match Score Circle */}
-            <div className="relative flex-shrink-0">
-              <div className={cn(
-                'w-14 h-14 rounded-xl flex items-center justify-center border',
-                trustBg
-              )}>
-                <span className={cn('text-lg font-bold', trustColor)}>{deal.trustScore}</span>
-              </div>
-              <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-violet-500/20 border border-violet-500/30">
-                <span className="text-[10px] font-bold text-violet-400">{deal.matchScore}%</span>
-              </div>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-lg font-bold text-white truncate">{deal.name}</h3>
-                <span className="px-2 py-0.5 rounded-full bg-cyan-400/10 border border-cyan-400/20 text-xs font-medium text-cyan-400 shrink-0">
-                  {deal.stage}
-                </span>
-              </div>
-              <p className="text-sm text-slate-300 mb-2">{deal.tagline}</p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1.5">
-                <span className="px-2 py-0.5 rounded-md bg-slate-700/50 text-xs text-slate-300">
-                  {deal.category}
-                </span>
-                <span className={cn('px-2 py-0.5 rounded-md text-xs', riskBg, riskColor)}>
-                  {deal.riskLevel} Risk
-                </span>
-                {deal.activityLevel === 'High' && (
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-400/10 text-xs text-emerald-400 flex items-center gap-1">
-                    <Activity className="h-3 w-3" /> Active
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Match Reasons */}
-          {deal.matchReasons.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-1.5">
-              {deal.matchReasons.slice(0, 3).map((reason, i) => (
-                <span key={i} className="flex items-center gap-1 px-2 py-1 rounded-md bg-violet-500/10 border border-violet-500/20 text-xs text-violet-300">
-                  <Sparkles className="h-3 w-3 text-violet-400" />
-                  {reason}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-4 gap-3 mb-4">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                <GitCommit className="h-3 w-3" />
-              </div>
-              <span className="text-sm font-bold text-white">{deal.github.commits30d}</span>
-              <p className="text-[10px] text-slate-500">Commits/30d</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                <Star className="h-3 w-3" />
-              </div>
-              <span className="text-sm font-bold text-white">{deal.github.stars}</span>
-              <p className="text-[10px] text-slate-500">Stars</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                <MessageCircle className="h-3 w-3" />
-              </div>
-              <span className="text-sm font-bold text-white">{deal.social.mentions}</span>
-              <p className="text-[10px] text-slate-500">Mentions</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                <TrendingUp className="h-3 w-3" />
-              </div>
-              <span className="text-sm font-bold text-white">+{deal.social.growth7d}%</span>
-              <p className="text-[10px] text-slate-500">7d Growth</p>
-            </div>
-          </div>
-
-          {/* Signal Bars */}
-          <div className="space-y-1.5 mb-4">
-            <SignalBar label="GitHub" value={deal.signals.github} color="bg-emerald-400" />
-            <SignalBar label="Social" value={deal.signals.social} color="bg-cyan-400" />
-            <SignalBar label="On-chain" value={deal.signals.onchain} color="bg-violet-400" />
-            <SignalBar label="Market" value={deal.signals.market} color="bg-amber-400" />
-            <SignalBar label="Sentiment" value={deal.signals.sentiment} color="bg-pink-400" />
-          </div>
-
-          {/* Expandable Details */}
-          {expanded && (
-            <div className="space-y-3 mb-4 animate-fade-in">
-              <p className="text-sm text-slate-300 leading-relaxed">{deal.description}</p>
-
-              {/* Highlights */}
-              <div>
-                <h4 className="text-xs font-semibold text-slate-400 uppercase mb-2">Key Highlights</h4>
-                <div className="space-y-1">
-                  {deal.highlights.map((h, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm text-slate-300">
-                      <Zap className="h-3 w-3 text-cyan-400 shrink-0" />
-                      {h}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Funding */}
-              <div className="flex items-center gap-4">
-                <div>
-                  <span className="text-xs text-slate-500">Target Raise</span>
-                  <p className="text-sm font-bold text-white">${(deal.funding.target / 1000).toFixed(0)}K</p>
-                </div>
-                <div>
-                  <span className="text-xs text-slate-500">Contributors</span>
-                  <p className="text-sm font-bold text-white">{deal.github.contributors}</p>
-                </div>
-                <div>
-                  <span className="text-xs text-slate-500">Sentiment</span>
-                  <p className="text-sm font-bold text-white">{(deal.social.sentiment * 100).toFixed(0)}%</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
-            >
-              {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              {expanded ? 'Less' : 'Details'}
-            </button>
-
-            <div className="flex items-center gap-2">
-              {deal.contact.github && (
-                <a
-                  href={deal.contact.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-                >
-                  <Github className="h-4 w-4" />
-                </a>
-              )}
-              {deal.contact.website && (
-                <a
-                  href={deal.contact.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-                >
-                  <Globe className="h-4 w-4" />
-                </a>
-              )}
-              <Link
-                href={`/autonomous-agent`}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors text-xs font-medium"
-              >
-                Analyze <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </GlassCard>
-    </div>
-  );
-}
-
-export default function DealFlowContent() {
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [sortBy, setSortBy] = useState('match');
-  const [selectedSectors, setSelectedSectors] = useState<string[]>(['AI/ML', 'Infrastructure', 'DeFi', 'Payments']);
-  const [riskTolerance, setRiskTolerance] = useState<'conservative' | 'moderate' | 'aggressive'>('moderate');
-  const [showFilters, setShowFilters] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<DealProject[]>([]);
+  const [sent, setSent] = useState<DealProposal[]>([]);
+  const [received, setReceived] = useState<DealProposal[]>([]);
+  const [investIn, setInvestIn] = useState<DealProject | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { setMounted(true); }, []);
-
-  const fetchDeals = useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        sectors: selectedSectors.join(','),
-        risk: riskTolerance,
-        sort: sortBy,
-        minScore: '70',
-      });
-      const res = await fetch(`/api/deal-flow?${params}`);
-      const data = await res.json();
-      if (data.success) {
-        setDeals(data.deals);
-        setSummary(data.summary);
-      }
-    } catch (err) {
-      console.error('Failed to fetch deals:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedSectors, riskTolerance, sortBy]);
+    const [approved, funded, asInvestor, asFounder] = await Promise.all([
+      getJson('/api/projects?status=APPROVED'),
+      getJson('/api/projects?status=FUNDED'),
+      getJson('/api/proposals?role=investor'),
+      getJson('/api/proposals?role=founder'),
+    ]);
+    setProjects([...(approved?.projects ?? []), ...(funded?.projects ?? [])]);
+    setSent(asInvestor?.proposals ?? []);
+    setReceived(asFounder?.proposals ?? []);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    if (mounted) fetchDeals();
-  }, [mounted, fetchDeals]);
+    setMounted(true);
+    load();
+  }, [load]);
 
-  const toggleSector = (sector: string) => {
-    setSelectedSectors(prev =>
-      prev.includes(sector) ? prev.filter(s => s !== sector) : [...prev, sector]
-    );
+  const respond = async (proposalId: string, action: 'accept' | 'reject' | 'accept_counter') => {
+    setBusyId(proposalId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/proposals/${proposalId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setBusyId(null);
+    }
   };
 
   if (!mounted) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25">
-            <Sparkles className="h-5 w-5 text-white" />
+  const open = projects.filter((p) => p.status === 'APPROVED');
+  const awaitingMe = received.filter((p) => p.status === 'PENDING');
+  const fundedCount = [...sent, ...received].filter((p) => p.status === 'FUNDED' || p.status === 'COMPLETED').length;
+
+  const stats = [
+    { label: 'Open Projects', value: open.length, icon: Target, color: 'text-cyan-400' },
+    { label: 'My Proposals', value: sent.length, icon: Send, color: 'text-violet-400' },
+    { label: 'Awaiting My Response', value: awaitingMe.length, icon: Inbox, color: 'text-amber-400' },
+    { label: 'Funded Deals', value: fundedCount, icon: CheckCircle2, color: 'text-emerald-400' },
+  ];
+
+  const ProposalRow = ({ p, mine }: { p: DealProposal; mine: boolean }) => {
+    const amount = p.agreedAmount ?? p.counterAmount ?? p.proposedAmount;
+    const hash = p.escrowTxHash ?? '';
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-700/30 bg-slate-800/30 p-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-xl">{p.project.logoEmoji}</span>
+          <div className="min-w-0">
+            <p className="font-medium text-white truncate">{p.project.name}</p>
+            <p className="text-xs text-slate-400">
+              {formatUsdc(amount)} USDC · {mine ? `to ${p.founder.name ?? 'founder'}` : `from ${p.investor.name ?? 'investor'}`} ·{' '}
+              {new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {p.status === 'COUNTERED' && p.counterAmount != null && ` · counter ${formatUsdc(p.counterAmount)}`}
+            </p>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Deal Flow Engine</h1>
-            <p className="text-sm text-slate-400">AI-powered recommendation pipeline for high-potential Web3 startups</p>
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', statusColors[p.status] ?? 'bg-slate-500/20 text-slate-400')}>
+            {p.status}
+          </span>
+          {TX_HASH.test(hash) && (
+            <a
+              href={explorerTxUrl(hash)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300"
+            >
+              tx <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+          {!mine && p.status === 'PENDING' && (
+            <>
+              <button
+                onClick={() => respond(p.id, 'accept')}
+                disabled={busyId === p.id}
+                className="flex items-center gap-1 rounded-lg bg-emerald-500/20 px-3 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-500/30 disabled:opacity-50"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" /> Accept
+              </button>
+              <button
+                onClick={() => respond(p.id, 'reject')}
+                disabled={busyId === p.id}
+                className="flex items-center gap-1 rounded-lg bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-50"
+              >
+                <XCircle className="h-3.5 w-3.5" /> Reject
+              </button>
+            </>
+          )}
+          {mine && p.status === 'COUNTERED' && (
+            <button
+              onClick={() => respond(p.id, 'accept_counter')}
+              disabled={busyId === p.id}
+              className="rounded-lg bg-emerald-500/20 px-3 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-500/30 disabled:opacity-50"
+            >
+              Accept counter
+            </button>
+          )}
+          {p.status === 'ACCEPTED' && (
+            <Link
+              href="/agent-console"
+              className="flex items-center gap-1 rounded-lg bg-cyan-500/20 px-3 py-1.5 text-xs font-medium text-cyan-400 hover:bg-cyan-500/30"
+            >
+              <Terminal className="h-3.5 w-3.5" /> Settle in Agent Console
+            </Link>
+          )}
         </div>
       </div>
+    );
+  };
 
-      {/* Summary Stats */}
-      {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <GlassCard padding="sm">
-            <div className="flex items-center gap-3 p-2">
-              <div className="p-2 rounded-lg bg-cyan-400/10">
-                <Layers className="h-5 w-5 text-cyan-400" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">Total Deals</p>
-                <p className="text-xl font-bold text-white">{summary.totalDeals}</p>
-              </div>
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <GlassCard padding="lg">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
+              <Target className="h-7 w-7 text-cyan-400" />
             </div>
-          </GlassCard>
-          <GlassCard padding="sm">
-            <div className="flex items-center gap-3 p-2">
-              <div className="p-2 rounded-lg bg-orange-400/10">
-                <Flame className="h-5 w-5 text-orange-400" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">Hot Deals</p>
-                <p className="text-xl font-bold text-orange-400">{summary.hotDeals}</p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Deal Flow</h1>
+              <p className="text-slate-400">
+                Submitted projects, proposals and funded deals on {NETWORK_LABEL}
+              </p>
             </div>
-          </GlassCard>
-          <GlassCard padding="sm">
-            <div className="flex items-center gap-3 p-2">
-              <div className="p-2 rounded-lg bg-emerald-400/10">
-                <ShieldCheck className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">Avg Trust</p>
-                <p className="text-xl font-bold text-emerald-400">{summary.avgTrustScore}</p>
-              </div>
-            </div>
-          </GlassCard>
-          <GlassCard padding="sm">
-            <div className="flex items-center gap-3 p-2">
-              <div className="p-2 rounded-lg bg-violet-400/10">
-                <BarChart3 className="h-5 w-5 text-violet-400" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">Top Sector</p>
-                <p className="text-lg font-bold text-white">{summary.topCategory}</p>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-      )}
-
-      {/* Investor Preferences Panel */}
-      <GlassCard>
-        <div className="p-4">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center justify-between w-full"
-          >
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-violet-400" />
-              <span className="text-sm font-medium text-white">Investor Preferences</span>
-              <span className="px-2 py-0.5 rounded-full bg-violet-500/20 text-xs text-violet-400">
-                {selectedSectors.length} sectors
-              </span>
-            </div>
-            {showFilters ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
-          </button>
-
-          {showFilters && (
-            <div className="mt-4 space-y-4 animate-fade-in">
-              {/* Sectors */}
-              <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Preferred Sectors</label>
-                <div className="flex flex-wrap gap-2">
-                  {SECTORS.map(sector => (
-                    <button
-                      key={sector}
-                      onClick={() => toggleSector(sector)}
-                      className={cn(
-                        'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-                        selectedSectors.includes(sector)
-                          ? 'bg-violet-500/20 border border-violet-500/40 text-violet-300'
-                          : 'bg-slate-700/50 border border-slate-600/30 text-slate-400 hover:text-white'
-                      )}
-                    >
-                      {sector}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Risk Tolerance */}
-              <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Risk Tolerance</label>
-                <div className="flex gap-2">
-                  {(['conservative', 'moderate', 'aggressive'] as const).map(risk => (
-                    <button
-                      key={risk}
-                      onClick={() => setRiskTolerance(risk)}
-                      className={cn(
-                        'px-4 py-2 rounded-lg text-xs font-medium transition-all capitalize',
-                        riskTolerance === risk
-                          ? risk === 'conservative' ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
-                            : risk === 'moderate' ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
-                            : 'bg-red-500/20 border border-red-500/40 text-red-300'
-                          : 'bg-slate-700/50 border border-slate-600/30 text-slate-400 hover:text-white'
-                      )}
-                    >
-                      {risk}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={fetchDeals}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 transition-colors text-sm font-medium"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Apply & Refresh
-              </button>
-            </div>
-          )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/submit-project"
+              className="flex items-center gap-2 rounded-lg bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-400 hover:bg-cyan-500/30"
+            >
+              <FileText className="h-4 w-4" /> Submit Project
+            </Link>
+            <button
+              onClick={load}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-lg bg-slate-800/50 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50 disabled:opacity-50"
+            >
+              <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} /> Refresh
+            </button>
+          </div>
         </div>
       </GlassCard>
 
-      {/* Sort Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        {SORT_OPTIONS.map(opt => {
-          const Icon = opt.icon;
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {stats.map((s) => {
+          const Icon = s.icon;
           return (
-            <button
-              key={opt.value}
-              onClick={() => setSortBy(opt.value)}
-              className={cn(
-                'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap',
-                sortBy === opt.value
-                  ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400'
-                  : 'bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:text-white'
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {opt.label}
-            </button>
+            <GlassCard key={s.label}>
+              <div className="flex items-center gap-3">
+                <Icon className={cn('h-5 w-5', s.color)} />
+                <div>
+                  <p className="text-xs text-slate-400">{s.label}</p>
+                  <p className="text-xl font-bold text-white">{s.value}</p>
+                </div>
+              </div>
+            </GlassCard>
           );
         })}
       </div>
 
-      {/* Deal Cards */}
-      {loading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <GlassCard key={i}>
-              <div className="p-5 space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-slate-700/50 animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-5 bg-slate-700/50 rounded animate-pulse w-2/3" />
-                    <div className="h-4 bg-slate-700/50 rounded animate-pulse w-full" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-4 gap-3">
-                  {[1, 2, 3, 4].map(j => (
-                    <div key={j} className="h-12 bg-slate-700/50 rounded animate-pulse" />
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map(j => (
-                    <div key={j} className="h-2 bg-slate-700/50 rounded animate-pulse" />
-                  ))}
-                </div>
-              </div>
-            </GlassCard>
-          ))}
-        </div>
-      ) : deals.length === 0 ? (
-        <GlassCard>
-          <div className="p-12 text-center">
-            <Target className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-white mb-2">No Deals Found</h3>
-            <p className="text-sm text-slate-400 mb-4">Try adjusting your preferences or lowering the minimum trust score.</p>
-            <button
-              onClick={() => {
-                setSelectedSectors(SECTORS);
-                setRiskTolerance('aggressive');
-              }}
-              className="px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors text-sm"
-            >
-              Reset Filters
-            </button>
-          </div>
-        </GlassCard>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {deals.map((deal, index) => (
-            <DealCard key={deal.id} deal={deal} index={index} />
-          ))}
-        </div>
+      {error && (
+        <p className="rounded-xl border border-red-500/30 bg-red-500/5 p-3 text-sm text-red-300">{error}</p>
       )}
 
-      {/* Footer Info */}
-      <div className="text-center py-4">
-        <p className="text-xs text-slate-500">
-          Deal Flow Engine analyzes {deals.length} projects across 5 signal sources.
-          Recommendations are AI-generated and updated in real-time.
-        </p>
+      {/* Proposals on my projects */}
+      {received.length > 0 && (
+        <GlassCard>
+          <h2 className="mb-4 text-lg font-semibold text-white">Proposals on My Projects</h2>
+          <div className="space-y-3">
+            {received.map((p) => (
+              <ProposalRow key={p.id} p={p} mine={false} />
+            ))}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* My proposals */}
+      {sent.length > 0 && (
+        <GlassCard>
+          <h2 className="mb-4 text-lg font-semibold text-white">My Proposals</h2>
+          <div className="space-y-3">
+            {sent.map((p) => (
+              <ProposalRow key={p.id} p={p} mine />
+            ))}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Projects */}
+      <div>
+        <h2 className="mb-3 text-lg font-semibold text-white">Projects</h2>
+        {!loading && projects.length === 0 ? (
+          <GlassCard>
+            <div className="p-10 text-center">
+              <Target className="mx-auto mb-4 h-12 w-12 text-slate-500" />
+              <h3 className="mb-2 text-lg font-bold text-white">No analysed projects yet</h3>
+              <p className="text-sm text-slate-400">
+                Projects appear here once they are submitted and scored by the agent.
+              </p>
+            </div>
+          </GlassCard>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {projects.map((project) => {
+              const isFounder = project.founder?.id === userId;
+              const pct = project.fundingGoal > 0
+                ? Math.min((project.currentFunding / project.fundingGoal) * 100, 100)
+                : 0;
+              return (
+                <GlassCard key={project.id} hover>
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-slate-800/50 text-2xl">
+                          {project.logoEmoji}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-white truncate">{project.name}</h3>
+                          <p className="text-sm text-slate-400 line-clamp-2">{project.tagline}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-shrink-0 items-center gap-1 text-emerald-400" title="Agent trust score">
+                        <Shield className="h-4 w-4" />
+                        <span className="text-sm font-bold">{project.aiTrustScore ?? '—'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-md bg-slate-700/50 px-2 py-1 text-slate-300">{project.category}</span>
+                      <span className="rounded-md bg-slate-700/50 px-2 py-1 text-slate-300">Risk: {project.riskLevel}</span>
+                      <span className={cn('rounded-md px-2 py-1', statusColors[project.status] ?? 'bg-slate-700/50 text-slate-300')}>
+                        {project.status}
+                      </span>
+                      <span className="text-slate-500">
+                        {project.milestones.length} milestone{project.milestones.length === 1 ? '' : 's'} · {project._count.proposals} proposal{project._count.proposals === 1 ? '' : 's'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="mb-1 flex justify-between text-xs text-slate-400">
+                        <span>{formatUsdc(project.currentFunding)} released</span>
+                        <span>goal {formatUsdc(project.fundingGoal)}</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-700/50">
+                        <div className="h-full rounded-full bg-cyan-400" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-slate-700/50 pt-3">
+                      <div className="flex items-center gap-2">
+                        {project.githubUrl && (
+                          <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-slate-700/50 p-2 text-slate-400 hover:text-white">
+                            <Github className="h-4 w-4" />
+                          </a>
+                        )}
+                        {project.websiteUrl && (
+                          <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-slate-700/50 p-2 text-slate-400 hover:text-white">
+                            <Globe className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
+                      {isFounder ? (
+                        <span className="text-xs text-slate-500">Your project</span>
+                      ) : project.status === 'APPROVED' ? (
+                        <button
+                          onClick={() => setInvestIn(project)}
+                          className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-cyan-400"
+                        >
+                          Propose Investment
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                </GlassCard>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {investIn && (
+        <InvestmentModal
+          isOpen
+          onClose={() => {
+            setInvestIn(null);
+            load();
+          }}
+          project={investIn}
+        />
+      )}
     </div>
   );
 }
