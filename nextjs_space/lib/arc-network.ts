@@ -20,6 +20,20 @@ export const IS_MAINNET = networkEnv === 'mainnet';
 /** Human-readable label for the current network. */
 export const NETWORK_LABEL = IS_MAINNET ? 'Arc Mainnet' : 'Arc Testnet';
 
+/** Short badge form of the network label ("Mainnet" / "Testnet"). */
+export const NETWORK_SHORT_LABEL = IS_MAINNET ? 'Mainnet' : 'Testnet';
+
+/**
+ * Mainnet cutover (server-side). The database has no per-row network column,
+ * so on-chain records (escrow tx hashes, milestone releases) written before
+ * this instant belong to the testnet deployment and must not be reported — or
+ * linked to the mainnet explorer — as mainnet activity. Null on testnet, where
+ * the full history applies. Override with ARC_MAINNET_SINCE (ISO date).
+ */
+export const NETWORK_SINCE: Date | null = IS_MAINNET
+  ? new Date(process.env.ARC_MAINNET_SINCE ?? '2026-09-20T00:00:00Z')
+  : null;
+
 // ---------------------------------------------------------------------------
 // Circle
 // ---------------------------------------------------------------------------
