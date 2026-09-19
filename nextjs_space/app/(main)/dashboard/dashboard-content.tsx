@@ -9,19 +9,42 @@ import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { GlassCard } from '@/components/shared/glass-card';
 import { TreasuryDisplay } from '@/components/wallet/treasury-display';
 import { AgentWalletDisplay } from '@/components/wallet/agent-wallet-display';
-import { useEntarcStore } from '@/store/use-entarc-store';
+import type { DashboardData } from '@/lib/dashboard-types';
 import { useEffect, useState } from 'react';
-import { Zap, Target, TrendingUp, Settings, Play } from 'lucide-react';
+import { Zap, Target, ShieldCheck, Settings, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
 
 export function DashboardContent() {
   const [mounted, setMounted] = useState(false);
-  const projects = useEntarcStore((state) => state.projects);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const { isConnected } = useAccount();
 
   useEffect(() => {
     setMounted(true);
+
+    // Real figures from the database — refreshed so new agent transfers show up.
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/dashboard');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = (await res.json()) as DashboardData;
+        if (!cancelled) {
+          setData(json);
+          setLoadError(false);
+        }
+      } catch {
+        if (!cancelled) setLoadError(true);
+      }
+    };
+    load();
+    const interval = setInterval(load, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   if (!mounted) {
@@ -32,10 +55,7 @@ export function DashboardContent() {
     );
   }
 
-  // Top performing projects
-  const topProjects = [...(projects ?? [])]
-    .sort((a, b) => (b?.performance?.roiPercent ?? 0) - (a?.performance?.roiPercent ?? 0))
-    .slice(0, 3);
+  const topProjects = data?.topProjects ?? [];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -100,27 +120,38 @@ export function DashboardContent() {
         </div>
       </div>
 
+      {loadError && (
+        <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-300">
+          Could not load live dashboard figures. Retrying automatically.
+        </p>
+      )}
+
       {/* Metric Cards */}
-      <MetricCards />
+      <MetricCards metrics={data?.metrics ?? null} />
 
       {/* Charts Row */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Streaming Chart - Takes 2 columns */}
         <div className="lg:col-span-2">
-          <StreamingChart />
+          <StreamingChart history={data?.history ?? []} />
         </div>
 
         {/* Top Projects */}
         <GlassCard>
           <div className="mb-4 flex items-center gap-2">
             <Target className="h-5 w-5 text-emerald-400" />
-            <h3 className="text-lg font-semibold text-white">Top Performers</h3>
+            <h3 className="text-lg font-semibold text-white">Top Rated Projects</h3>
           </div>
           <div className="space-y-3">
+            {topProjects.length === 0 && (
+              <p className="text-sm text-slate-400">
+                No analyzed projects yet. Run discovery to let the agent score candidates.
+              </p>
+            )}
             {topProjects.map((project, index) => (
               <Link
                 key={project?.id ?? index}
-                href={`/projects/${project?.id ?? ''}`}
+                href="/deal-flow"
                 className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-slate-800/50"
               >
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-slate-400">
@@ -135,11 +166,9 @@ export function DashboardContent() {
                   </p>
                   <p className="text-xs text-slate-400">{project?.category ?? 'N/A'}</p>
                 </div>
-                <div className="flex items-center gap-1 text-emerald-400">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    +{(project?.performance?.roiPercent ?? 0).toFixed(1)}%
-                  </span>
+                <div className="flex items-center gap-1 text-emerald-400" title="AI trust score">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="text-sm font-medium">{project?.aiTrustScore ?? '—'}/100</span>
                 </div>
               </Link>
             ))}
@@ -148,7 +177,7 @@ export function DashboardContent() {
       </div>
 
       {/* Recent Activity */}
-      <RecentActivity />
+      <RecentActivity activities={data?.activity ?? []} />
     </div>
   );
 }
