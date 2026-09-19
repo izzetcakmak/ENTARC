@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { NETWORK_LABEL } from '@/lib/arc-network';
 import {
   Play, Pause, ChevronLeft, ChevronRight, ExternalLink,
   Brain, Shield, Zap, DollarSign, BarChart3, Globe,
@@ -438,7 +439,7 @@ export default function DemoContent() {
               { label: 'CCTP Bridge', color: 'text-purple-400 border-purple-500/30' },
               { label: 'USDC Streaming', color: 'text-emerald-400 border-emerald-500/30' },
               { label: 'AI Signal Fusion', color: 'text-cyan-400 border-cyan-500/30' },
-              { label: 'Arc Testnet', color: 'text-amber-400 border-amber-500/30' },
+              { label: NETWORK_LABEL, color: 'text-amber-400 border-amber-500/30' },
               { label: 'Programmable Wallets', color: 'text-pink-400 border-pink-500/30' },
             ].map(chip => (
               <span
