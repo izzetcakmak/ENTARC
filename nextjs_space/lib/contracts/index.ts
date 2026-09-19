@@ -18,7 +18,7 @@ export { VALIDATOR_MANAGER_ABI } from './validator-manager-abi';
 
 // Re-export Wagmi config with updated Arc Protocol addresses
 export {
-  arcTestnet,
+  arcChain,
   wagmiConfig,
   USDC_CONTRACT_ADDRESS,
   ARC_PROTOCOL_ADDRESSES,

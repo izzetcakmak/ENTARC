@@ -9,7 +9,7 @@ import { ARC_TESTNET_ADDRESSES, ARC_CHAIN_PARAMS } from './contracts/arc-testnet
 import { IS_MAINNET, ARC_RPC_URL } from './arc-network';
 
 // Arc Chain Definition — switches with ARC_NETWORK env var
-export const arcTestnet = defineChain({
+export const arcChain = defineChain({
   id: ARC_CHAIN_PARAMS.CHAIN_ID,
   name: ARC_CHAIN_PARAMS.CHAIN_NAME,
   nativeCurrency: {
@@ -27,7 +27,7 @@ export const arcTestnet = defineChain({
   },
   blockExplorers: {
     default: {
-      name: 'ArcScan',
+      name: IS_MAINNET ? 'Arc Explorer' : 'ArcScan',
       url: ARC_CHAIN_PARAMS.EXPLORER_URL,
     },
   },
@@ -43,12 +43,12 @@ export const ARC_PROTOCOL_PARAMS = ARC_CHAIN_PARAMS;
 
 // Wagmi Config
 export const wagmiConfig = createConfig({
-  chains: [arcTestnet],
+  chains: [arcChain],
   connectors: [
     injected(),
   ],
   transports: {
-    [arcTestnet.id]: http(ARC_RPC_URL),
+    [arcChain.id]: http(ARC_RPC_URL),
   },
   ssr: true,
   storage: createStorage({
@@ -57,4 +57,4 @@ export const wagmiConfig = createConfig({
 });
 
 // Export chain for use in components
-export const supportedChains = [arcTestnet] as const;
+export const supportedChains = [arcChain] as const;
