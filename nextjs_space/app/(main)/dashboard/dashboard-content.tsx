@@ -11,7 +11,7 @@ import { TreasuryDisplay } from '@/components/wallet/treasury-display';
 import { AgentWalletDisplay } from '@/components/wallet/agent-wallet-display';
 import type { DashboardData } from '@/lib/dashboard-types';
 import { useEffect, useState } from 'react';
-import { Zap, Target, ShieldCheck, Settings, Play } from 'lucide-react';
+import { Zap, Target, ShieldCheck, Settings, Play, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
 
@@ -76,6 +76,13 @@ export function DashboardContent() {
           >
             <Play className="h-4 w-4" />
             Watch Demo
+          </Link>
+          <Link
+            href="/docs"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-5 py-2.5 font-medium text-slate-200 transition-all hover:border-cyan-500/40 hover:text-white"
+          >
+            <BookOpen className="h-4 w-4" />
+            How It Works
           </Link>
           <Link
             href="/discovery"
