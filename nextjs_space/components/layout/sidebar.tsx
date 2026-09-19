@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
+import { NETWORK_LABEL } from '@/lib/arc-network';
 
 interface NavItem {
   label: string;
@@ -86,7 +87,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-1 p-3">
+      <nav className="flex flex-col gap-1 overflow-y-auto p-3 pb-56" style={{ maxHeight: 'calc(100vh - 4rem)' }}>
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
           const Icon = item.icon;
@@ -152,21 +153,15 @@ export function Sidebar() {
 
       {/* Bottom Section */}
       <div className="absolute bottom-0 left-0 right-0 border-t border-slate-800/50 p-3">
-        {/* Streaming Status */}
+        {/* Active network */}
         <div
           className={cn(
-            'mb-3 rounded-xl bg-slate-900/50 p-3',
+            'mb-2 flex items-center gap-2 rounded-xl bg-slate-900/50 px-3 py-2',
             collapsed && 'hidden'
           )}
         >
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <div className="h-2 w-2 rounded-full bg-emerald-400" />
-              <div className="absolute inset-0 h-2 w-2 animate-ping rounded-full bg-emerald-400" />
-            </div>
-            <span className="text-xs text-slate-400">Streaming Active</span>
-          </div>
-          <p className="mt-1 text-xs text-slate-500">Real-time fund release</p>
+          <div className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="text-xs text-slate-400">{NETWORK_LABEL}</span>
         </div>
 
         {/* Contact & Partnerships */}
